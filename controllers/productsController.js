@@ -16,14 +16,19 @@ exports.getRetailerProducts = async(req, res) => {
 exports.getAllProducts = async(req, res) => {
     try {
         const [products] = await db.query(
-            'SELECT p.*, r.storeName AS retailerName FROM products p JOIN retailers r ON p.retailerId = r.id ORDER BY p.created_at DESC'
+            `SELECT p.*, r.storeName AS retailerName
+             FROM products p
+             JOIN retailers r ON p.retailerId = r.id
+             ORDER BY p.created_at DESC`
         );
+
         const formatted = products.map((p) => ({
             ...p,
-            photo: p.photo ?.startsWith('http') ?
+            photo: p.photo && p.photo.startsWith('http') ?
                 p.photo :
                 `http://localhost:5000${p.photo}`,
         }));
+
         res.json({ count: formatted.length, products: formatted });
     } catch (err) {
         console.error('Customer product fetch error:', err);
@@ -38,9 +43,11 @@ exports.deleteProduct = async(req, res) => {
         const [result] = await db.query(
             'DELETE FROM products WHERE id = ? AND retailerId = ?', [productId, retailerId]
         );
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Product not found or unauthorized' });
         }
+
         res.json({ message: 'Product deleted successfully' });
     } catch (err) {
         console.error('Delete product error:', err);
