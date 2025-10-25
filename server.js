@@ -25,12 +25,12 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
-const authRoutes = require('./routes/auth');
-const ordersRoutes = require('./routes/orders');
-const productsRoutes = require('./routes/products');
-const cartRoutes = require('./routes/cart');
-const checkoutRoutes = require('./routes/checkout');
-const uploadRoutes = require('./routes/upload');
+const authRoutes = require('./backend/routes/auth');
+const ordersRoutes = require('./backend/routes/orders');
+const productsRoutes = require('./backend/routes/products');
+const cartRoutes = require('./backend/routes/cart');
+const checkoutRoutes = require('./backend/routes/checkout');
+const uploadRoutes = require('./backend/routes/upload');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', ordersRoutes);
