@@ -12,7 +12,7 @@ app.use(helmet());
 // CORS configuration
 app.use(cors({
     origin: [
-        process.env.CORS_ORIGIN,
+        process.env.CORS_ORIGIN || 'https://bakeryapplication-production.up.railway.app',
         'http://localhost:3000'
     ],
     credentials: true
@@ -44,8 +44,13 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'Bakery backend is alive!' });
 });
 
+// Fallback route for root access
+app.get('/', (req, res) => {
+    res.send('Welcome to the Bakery backend!');
+});
+
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`✅ Server running on port ${PORT}`);
 });
