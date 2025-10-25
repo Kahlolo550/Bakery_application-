@@ -20,7 +20,7 @@ exports.getAllProducts = async(req, res) => {
         );
         const formatted = products.map((p) => ({
             ...p,
-            photo: p.photo ? .startsWith('http') ?
+            photo: p.photo ?.startsWith('http') ?
                 p.photo :
                 `http://localhost:5000${p.photo}`,
         }));
