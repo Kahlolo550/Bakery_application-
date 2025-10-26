@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import API_BASE from '../../config/api';
 
 function RetailerLogin({ onLogin }) {
   const [contactEmail, setContactEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const login = async () => {
@@ -14,14 +16,23 @@ function RetailerLogin({ onLogin }) {
       return;
     }
 
+    setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login/retailer', {
+      const res = await fetch(`${API_BASE}/api/login/retailer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contactEmail, password })
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        const raw = await res.text();
+        console.error('⚠️ Raw response:', raw);
+        setError('Unexpected server response.');
+        return;
+      }
 
       if (res.ok && data.token) {
         localStorage.setItem('token', data.token);
@@ -32,7 +43,10 @@ function RetailerLogin({ onLogin }) {
         setError(data.error || 'Login failed. Please try again.');
       }
     } catch (err) {
+      console.error('❌ Retailer login error:', err);
       setError('Network error. Please check your connection.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,6 +70,7 @@ function RetailerLogin({ onLogin }) {
               placeholder="e.g. sweetcrumbs@gmail.com"
               value={contactEmail}
               onChange={e => setContactEmail(e.target.value)}
+              disabled={loading}
             />
           </div>
 
@@ -67,11 +82,13 @@ function RetailerLogin({ onLogin }) {
               placeholder="Enter your password"
               value={password}
               onChange={e => setPassword(e.target.value)}
+              disabled={loading}
             />
           </div>
 
-          <button className="btn btn-success w-100" onClick={login}>
-            <i className="fas fa-lock me-2"></i>Login
+          <button className="btn btn-success w-100" onClick={login} disabled={loading}>
+            <i className="fas fa-lock me-2"></i>
+            {loading ? 'Logging in...' : 'Login'}
           </button>
 
           <div className="text-center mt-3">
