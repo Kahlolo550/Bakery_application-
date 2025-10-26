@@ -26,7 +26,7 @@ function CustomerRegister({ showNotification }) {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/register/customer`, {
+      const res = await fetch(`${API_BASE}/register/customer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
