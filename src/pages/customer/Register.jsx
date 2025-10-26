@@ -3,7 +3,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import API_BASE from '../../config/api';
 
 function CustomerRegister({ showNotification }) {
-  const [form, setForm] = useState({ username: '', password: '', confirm: '', email: '', fullName: '' });
+  const [form, setForm] = useState({
+    username: '',
+    password: '',
+    confirm: '',
+    email: '',
+    fullName: ''
+  });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -20,22 +26,22 @@ function CustomerRegister({ showNotification }) {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/auth/register/customer`, {
+      const res = await fetch(`${API_BASE}/api/register/customer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: form.username.trim(),
           password: form.password.trim(),
           email: form.email.trim(),
-          fullName: form.fullName.trim(),
-        }),
+          fullName: form.fullName.trim()
+        })
       });
 
-      const data = await res.json();
       if (res.ok) {
         showNotification('Customer registered successfully!');
         navigate('/customer/login');
       } else {
+        const data = await res.json();
         showNotification(data.error || 'Registration failed.', true);
       }
     } catch {
@@ -53,15 +59,30 @@ function CustomerRegister({ showNotification }) {
             <i className="fas fa-user-plus me-2"></i>Customer Registration
           </h3>
           <input type="text" className="form-control mb-3" placeholder="Full Name"
-            value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} disabled={loading} />
+            value={form.fullName}
+            onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+            disabled={loading}
+          />
           <input type="email" className="form-control mb-3" placeholder="Email"
-            value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} disabled={loading} />
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            disabled={loading}
+          />
           <input type="text" className="form-control mb-3" placeholder="Username"
-            value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} disabled={loading} />
+            value={form.username}
+            onChange={(e) => setForm({ ...form, username: e.target.value })}
+            disabled={loading}
+          />
           <input type="password" className="form-control mb-3" placeholder="Password"
-            value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} disabled={loading} />
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            disabled={loading}
+          />
           <input type="password" className="form-control mb-4" placeholder="Confirm Password"
-            value={form.confirm} onChange={(e) => setForm({ ...form, confirm: e.target.value })} disabled={loading} />
+            value={form.confirm}
+            onChange={(e) => setForm({ ...form, confirm: e.target.value })}
+            disabled={loading}
+          />
           <button className="btn btn-primary w-100" onClick={register} disabled={loading}>
             <i className="fas fa-check-circle me-2"></i>{loading ? 'Registering...' : 'Register'}
           </button>
