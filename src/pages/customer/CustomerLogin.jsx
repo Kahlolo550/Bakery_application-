@@ -16,7 +16,7 @@ function CustomerLogin({ onLogin, showNotification }) {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/login/customer`, {
+      const res = await fetch(`${API_BASE}/api/customer/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), password: password.trim() }),
