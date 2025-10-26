@@ -44,11 +44,11 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'Bakery backend is alive!' });
 });
 
-// Serve frontend static files from top-level build/
+// Serve frontend static files
 app.use(express.static(path.join(__dirname, 'build')));
 
-// Fallback to frontend for unknown routes (safe wildcard)
-app.get('/*', (req, res) => {
+// Fallback to frontend for non-API routes (safe RegExp)
+app.get(/^\/(?!api).*/, (req, res) => {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
