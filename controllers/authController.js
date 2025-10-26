@@ -4,13 +4,18 @@ const jwt = require('jsonwebtoken');
 
 const SECRET = process.env.JWT_SECRET || 'sweetcrust_secret';
 
-// 🔐 Middleware helper
 function generateToken(id) {
     return jwt.sign({ id }, SECRET, { expiresIn: '1h' });
 }
 
-// ✅ Customer Registration
+// ✅ Middleware helper to log requests
+function logRequest(req) {
+    console.log(`📝 [${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+}
+
+// Customer Registration
 exports.registerCustomer = async(req, res) => {
+    logRequest(req);
     const { username, password, email, fullName } = req.body;
     if (!username || !password || !email || !fullName) {
         return res.status(400).json({ error: 'All fields are required.' });
@@ -32,8 +37,9 @@ exports.registerCustomer = async(req, res) => {
     }
 };
 
-// ✅ Customer Login
+// Customer Login
 exports.loginCustomer = async(req, res) => {
+    logRequest(req);
     const { email, password } = req.body;
     if (!email || !password) {
         return res.status(400).json({ error: 'Email and password are required.' });
@@ -63,8 +69,9 @@ exports.loginCustomer = async(req, res) => {
     }
 };
 
-// ✅ Retailer Registration
+// Retailer Registration
 exports.registerRetailer = async(req, res) => {
+    logRequest(req);
     const { username, password, contactEmail, storeName } = req.body;
     if (!username || !password || !contactEmail || !storeName) {
         return res.status(400).json({ error: 'All fields are required.' });
@@ -86,8 +93,9 @@ exports.registerRetailer = async(req, res) => {
     }
 };
 
-// ✅ Retailer Login
+// Retailer Login
 exports.loginRetailer = async(req, res) => {
+    logRequest(req);
     const { contactEmail, password } = req.body;
     if (!contactEmail || !password) {
         return res.status(400).json({ error: 'Email and password are required.' });
@@ -117,17 +125,20 @@ exports.loginRetailer = async(req, res) => {
     }
 };
 
-// ✅ GET routes for browser visibility
+// GET routes for browser visibility
 exports.getCustomerRegister = (req, res) => {
+    logRequest(req);
     res.send('Customer registration endpoint is live. Use POST to register.');
 };
 
 exports.getRetailerRegister = (req, res) => {
+    logRequest(req);
     res.send('Retailer registration endpoint is live. Use POST to register.');
 };
 
-// ✅ /me routes
+// /me routes
 exports.getCustomerProfile = async(req, res) => {
+    logRequest(req);
     try {
         const [users] = await db.query(
             'SELECT id, username, email, fullName FROM users WHERE id = ?', [req.user.id]
@@ -141,6 +152,7 @@ exports.getCustomerProfile = async(req, res) => {
 };
 
 exports.getRetailerProfile = async(req, res) => {
+    logRequest(req);
     try {
         const [retailers] = await db.query(
             'SELECT id, username, contactEmail, storeName FROM retailers WHERE id = ?', [req.user.id]

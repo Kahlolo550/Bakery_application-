@@ -16,7 +16,7 @@ function CustomerLogin({ onLogin, showNotification }) {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/login/customer`, { // <-- make sure route matches backend
+      const res = await fetch(`${API_BASE}/api/login/customer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), password: password.trim() }),
@@ -30,11 +30,13 @@ function CustomerLogin({ onLogin, showNotification }) {
         showNotification('Login successful!');
         navigate('/customer/dashboard');
       } else {
-        showNotification(data.error || `Login failed with status ${res.status}`, true);
+        // Show actual error from backend
+        const errorMessage = data.error || 'Login failed.';
+        showNotification(errorMessage, true);
       }
     } catch (err) {
-      console.error('Login error:', err); // log actual error in console
-      showNotification(`Network error: ${err.message}`, true); // show actual error message
+      // Show actual fetch/network error
+      showNotification(`Network error: ${err.message}`, true);
     } finally {
       setLoading(false);
     }

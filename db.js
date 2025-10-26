@@ -2,7 +2,7 @@ require('dotenv').config();
 const mysql = require('mysql2');
 
 const dbConfig = {
-    host: 'mysql.railway.internal', // ✅ Force correct internal hostname
+    host: process.env.DB_HOST,
     port: process.env.DB_PORT || 3306,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -24,9 +24,7 @@ const pool = mysql.createPool(dbConfig);
 
 pool.getConnection((err, connection) => {
     if (err) {
-        console.error('❌ MySQL connection failed!');
-        console.error('🔎 Error object:', err);
-        console.error('📄 Stack trace:', err.stack);
+        console.error('❌ MySQL connection failed!', err);
     } else {
         console.log('✅ MySQL connected successfully');
         connection.release();
