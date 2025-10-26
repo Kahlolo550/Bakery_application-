@@ -5,6 +5,7 @@ import API_BASE from '../../config/api';
 function CheckoutPage({ token, refreshCart, showNotification }) {
   const [cartItems, setCartItems] = useState([]);
   const [formData, setFormData] = useState({ address: '', phone: '', note: '' });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const fetchCart = useCallback(() => {
@@ -15,7 +16,7 @@ function CheckoutPage({ token, refreshCart, showNotification }) {
       .then((res) => res.json())
       .then((data) => setCartItems(data))
       .catch(() => showNotification('Failed to load cart.', true));
-  }, [token]);
+  }, [token, showNotification]); // ✅ Fix ESLint warning
 
   useEffect(() => {
     fetchCart();
@@ -27,9 +28,9 @@ function CheckoutPage({ token, refreshCart, showNotification }) {
       return;
     }
 
+    setLoading(true);
     try {
-
-            const res = await fetch(`${API_BASE}/api/checkout`, {
+      const res = await fetch(`${API_BASE}/api/checkout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,8 +51,11 @@ function CheckoutPage({ token, refreshCart, showNotification }) {
       } else {
         showNotification(data.error || 'Failed to place order.', true);
       }
-    } catch {
+    } catch (err) {
+      console.error('Checkout error:', err);
       showNotification('Failed to place order.', true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,6 +92,7 @@ function CheckoutPage({ token, refreshCart, showNotification }) {
                   placeholder="e.g. House #12, Maseru East"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  disabled={loading}
                 />
               </div>
 
@@ -99,6 +104,7 @@ function CheckoutPage({ token, refreshCart, showNotification }) {
                   placeholder="e.g. +266 5800 1234"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  disabled={loading}
                 />
               </div>
 
@@ -110,11 +116,12 @@ function CheckoutPage({ token, refreshCart, showNotification }) {
                   placeholder="Any special instructions?"
                   value={formData.note}
                   onChange={(e) => setFormData({ ...formData, note: e.target.value })}
+                  disabled={loading}
                 />
               </div>
 
-              <button className="btn btn-success w-100" onClick={placeOrder}>
-                <i className="fas fa-check-circle me-2"></i>Place Order
+              <button className="btn btn-success w-100" onClick={placeOrder} disabled={loading}>
+                <i className="fas fa-check-circle me-2"></i>{loading ? 'Placing Order...' : 'Place Order'}
               </button>
             </>
           )}
