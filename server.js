@@ -10,7 +10,7 @@ app.use(helmet());
 
 app.use(cors({
     origin: [
-        'https://your-frontend-domain.onrender.com',
+        'https://bakery-frontend.onrender.com',
         'http://localhost:3000'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
