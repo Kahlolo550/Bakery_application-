@@ -1,7 +1,6 @@
-require('dotenv').config();
 const mysql = require('mysql2');
 
-const dbConfig = {
+const pool = mysql.createPool({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT || 3306,
     user: process.env.DB_USER,
@@ -10,17 +9,7 @@ const dbConfig = {
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-};
-
-console.log('🔍 MySQL Config:', {
-    host: dbConfig.host,
-    port: dbConfig.port,
-    user: dbConfig.user,
-    database: dbConfig.database,
-    password: dbConfig.password ? '***' : '(missing)',
 });
-
-const pool = mysql.createPool(dbConfig);
 
 pool.getConnection((err, connection) => {
     if (err) {
