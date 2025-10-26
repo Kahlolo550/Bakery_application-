@@ -1,27 +1,24 @@
 require('dotenv').config();
 const mysql = require('mysql2');
-const { URL } = require('url');
 
-const dbUrl = process.env.DATABASE_URL;
-let dbConfig = {};
+const dbConfig = {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+};
 
-if (dbUrl) {
-    const parsed = new URL(dbUrl);
-    dbConfig = {
-        host: parsed.hostname,
-        port: parsed.port,
-        user: parsed.username,
-        password: parsed.password,
-        database: parsed.pathname.replace('/', ''),
-        waitForConnections: true,
-        connectionLimit: 10,
-        queueLimit: 0,
-    };
-} else {
-    console.error('❌ DATABASE_URL is missing from environment');
-}
-
-console.log('🔍 MySQL Config:', dbConfig);
+console.log('🔍 MySQL Config:', {
+    host: dbConfig.host,
+    port: dbConfig.port,
+    user: dbConfig.user,
+    database: dbConfig.database,
+    password: dbConfig.password ? '***' : '(missing)',
+});
 
 const pool = mysql.createPool(dbConfig);
 
