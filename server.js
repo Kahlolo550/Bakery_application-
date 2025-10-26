@@ -24,7 +24,7 @@ app.use(express.json());
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Routes
+// API Routes
 const authRoutes = require('./routes/auth');
 const ordersRoutes = require('./routes/orders');
 const productsRoutes = require('./routes/products');
@@ -44,9 +44,12 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'Bakery backend is alive!' });
 });
 
-// Fallback route for root access
-app.get('/', (req, res) => {
-    res.send('Welcome to the Bakery backend!');
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, '../client/build')));
+
+// Fallback to frontend for unknown routes
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
 
 // Start server
