@@ -31,7 +31,6 @@ function groupOrders(rows, includeCustomer = false) {
 
 exports.getRetailerOrders = async(req, res) => {
     const retailerId = req.user.id;
-
     try {
         const [rows] = await db.query(`
       SELECT o.id AS orderId, o.userId, o.status, o.orderDate, o.address, o.phone,
@@ -49,5 +48,85 @@ exports.getRetailerOrders = async(req, res) => {
     } catch (err) {
         console.error('Retailer order fetch error:', err);
         res.status(500).json({ error: 'Failed to fetch retailer orders' });
+    }
+};
+
+exports.getCustomerOrders = async(req, res) => {
+    const userId = req.user.id;
+    try {
+        const [rows] = await db.query(`
+      SELECT o.id AS orderId, o.status, o.orderDate, o.address, o.phone,
+             p.id AS productId, p.name AS productName, p.photo AS productPhoto,
+             o.quantity AS quantity
+      FROM orders o
+      JOIN products p ON p.id = o.productId
+      WHERE o.userId = ?
+      ORDER BY o.orderDate DESC
+    `, [userId]);
+
+        res.json(groupOrders(rows));
+    } catch (err) {
+        console.error('Customer order fetch error:', err);
+        res.status(500).json({ error: 'Failed to fetch customer orders' });
+    }
+};
+
+exports.placeOrder = async(req, res) => {
+    const userId = req.user.id;
+    const { productId, quantity, address, phone, note } = req.body;
+
+    try {
+        const orderDate = new Date();
+        const status = 'pending';
+
+        await db.query(
+            `INSERT INTO orders 
+       (userId, productId, quantity, orderDate, status, address, phone, note, created_at, updated_at) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`, [userId, productId, quantity, orderDate, status, address, phone, note]
+        );
+
+        res.status(201).json({ message: 'Order placed successfully' });
+    } catch (err) {
+        console.error('Order creation error:', err);
+        res.status(500).json({ error: 'Failed to place order' });
+    }
+};
+
+exports.updateOrderStatus = async(req, res) => {
+    const orderId = req.params.id;
+    const { status } = req.body;
+
+    if (!['pending', 'completed'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    try {
+        await db.query(
+            `UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ?`, [status, orderId]
+        );
+        res.json({ message: 'Order status updated successfully' });
+    } catch (err) {
+        console.error('Status update error:', err);
+        res.status(500).json({ error: 'Failed to update status' });
+    }
+};
+
+exports.deleteOrder = async(req, res) => {
+    const orderId = req.params.id;
+    const userId = req.user.id;
+
+    try {
+        const [check] = await db.query(
+            `SELECT id FROM orders WHERE id = ? AND userId = ?`, [orderId, userId]
+        );
+        if (check.length === 0) {
+            return res.status(403).json({ error: 'Unauthorized or order not found' });
+        }
+
+        await db.query(`DELETE FROM orders WHERE id = ?`, [orderId]);
+        res.json({ message: 'Order deleted successfully' });
+    } catch (err) {
+        console.error('Delete error:', err);
+        res.status(500).json({ error: 'Failed to delete order' });
     }
 };
