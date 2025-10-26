@@ -1,166 +1,116 @@
 const db = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const Joi = require('joi');
 
-const SECRET = process.env.JWT_SECRET || 'sweetcrust_secret';
-
-function generateToken(id) {
-    return jwt.sign({ id }, SECRET, { expiresIn: '1h' });
+const SECRET = process.env.JWT_SECRET;
+if (!SECRET) {
+    throw new Error('FATAL: JWT_SECRET environment variable is not defined.');
 }
 
-// ✅ Middleware helper to log requests
-function logRequest(req) {
-    console.log(`📝 [${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+// User validation schemas
+const userSchema = Joi.object({
+    username: Joi.string().min(3).max(30).required(),
+    password: Joi.string().min(8).required(),
+    email: Joi.string().email().required(),
+    fullName: Joi.string().required(),
+});
+
+const retailerSchema = Joi.object({
+    username: Joi.string().min(3).max(30).required(),
+    password: Joi.string().min(8).required(),
+    contactEmail: Joi.string().email().required(),
+    storeName: Joi.string().required(),
+});
+
+const loginSchema = Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+});
+
+// Middleware for validation
+const validate = (schema) => (req, res, next) => {
+    const { error } = schema.validate(req.body);
+    if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+    }
+    next();
+};
+
+function generateToken(id, role) {
+    return jwt.sign({ id, role }, SECRET, { expiresIn: '1h' });
 }
 
 // Customer Registration
-exports.registerCustomer = async(req, res) => {
-    logRequest(req);
+exports.registerCustomer = [validate(userSchema), async(req, res, next) => {
     const { username, password, email, fullName } = req.body;
-    if (!username || !password || !email || !fullName) {
-        return res.status(400).json({ error: 'All fields are required.' });
-    }
-
     try {
         const hashed = await bcrypt.hash(password, 10);
         await db.query(
-            'INSERT INTO users (username, password, email, fullName) VALUES (?, ?, ?, ?)', [username, hashed, email, fullName]
+            'INSERT INTO users (username, password, email, fullName, role) VALUES (?, ?, ?, ?, "customer")', [username, hashed, email, fullName]
         );
-        res.sendStatus(201);
+        res.status(201).json({ message: 'Customer registered successfully.' });
     } catch (err) {
-        console.error('Customer registration error:', err);
         if (err.code === 'ER_DUP_ENTRY') {
-            res.status(409).json({ error: 'Username or email already exists.' });
-        } else {
-            res.status(500).json({ error: 'Server error during registration.' });
+            return res.status(409).json({ error: 'Username or email already exists.' });
         }
+        next(err); // Pass error to the global error handler
     }
-};
+}];
 
-// Customer Login
-exports.loginCustomer = async(req, res) => {
-    logRequest(req);
+// User Login (for both customer and retailer)
+exports.loginUser = [validate(loginSchema), async(req, res, next) => {
     const { email, password } = req.body;
-    if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required.' });
-    }
-
     try {
         const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
         const user = users[0];
-        if (!user) return res.status(404).json({ error: 'Email not found.' });
+        if (!user) return res.status(401).json({ error: 'Invalid email or password.' });
 
         const match = await bcrypt.compare(password, user.password);
-        if (!match) return res.status(401).json({ error: 'Incorrect password.' });
+        if (!match) return res.status(401).json({ error: 'Invalid email or password.' });
 
-        const token = generateToken(user.id);
+        const token = generateToken(user.id, user.role);
         res.json({
             token,
             user: {
                 id: user.id,
                 username: user.username,
                 email: user.email,
-                fullName: user.fullName
+                role: user.role
             }
         });
     } catch (err) {
-        console.error('Customer login error:', err);
-        res.status(500).json({ error: 'Server error during login.' });
+        next(err);
     }
-};
+}];
 
 // Retailer Registration
-exports.registerRetailer = async(req, res) => {
-    logRequest(req);
+exports.registerRetailer = [validate(retailerSchema), async(req, res, next) => {
     const { username, password, contactEmail, storeName } = req.body;
-    if (!username || !password || !contactEmail || !storeName) {
-        return res.status(400).json({ error: 'All fields are required.' });
-    }
-
     try {
         const hashed = await bcrypt.hash(password, 10);
         await db.query(
-            'INSERT INTO retailers (username, password, contactEmail, storeName) VALUES (?, ?, ?, ?)', [username, hashed, contactEmail, storeName]
+            'INSERT INTO users (username, password, email, storeName, role) VALUES (?, ?, ?, ?, "retailer")', [username, hashed, contactEmail, storeName]
         );
-        res.sendStatus(201);
+        res.status(201).json({ message: 'Retailer registered successfully.' });
     } catch (err) {
-        console.error('Retailer registration error:', err);
         if (err.code === 'ER_DUP_ENTRY') {
-            res.status(409).json({ error: 'Username or email already exists.' });
-        } else {
-            res.status(500).json({ error: 'Server error during registration.' });
+            return res.status(409).json({ error: 'Username or email already exists.' });
         }
+        next(err);
     }
-};
+}];
 
-// Retailer Login
-exports.loginRetailer = async(req, res) => {
-    logRequest(req);
-    const { contactEmail, password } = req.body;
-    if (!contactEmail || !password) {
-        return res.status(400).json({ error: 'Email and password are required.' });
-    }
-
+// User Profile (single endpoint for both)
+exports.getProfile = async(req, res, next) => {
     try {
-        const [retailers] = await db.query('SELECT * FROM retailers WHERE contactEmail = ?', [contactEmail]);
-        const retailer = retailers[0];
-        if (!retailer) return res.status(404).json({ error: 'Email not found.' });
-
-        const match = await bcrypt.compare(password, retailer.password);
-        if (!match) return res.status(401).json({ error: 'Incorrect password.' });
-
-        const token = generateToken(retailer.id);
-        res.json({
-            token,
-            retailer: {
-                id: retailer.id,
-                username: retailer.username,
-                contactEmail: retailer.contactEmail,
-                storeName: retailer.storeName
-            }
-        });
-    } catch (err) {
-        console.error('Retailer login error:', err);
-        res.status(500).json({ error: 'Server error during login.' });
-    }
-};
-
-// GET routes for browser visibility
-exports.getCustomerRegister = (req, res) => {
-    logRequest(req);
-    res.send('Customer registration endpoint is live. Use POST to register.');
-};
-
-exports.getRetailerRegister = (req, res) => {
-    logRequest(req);
-    res.send('Retailer registration endpoint is live. Use POST to register.');
-};
-
-// /me routes
-exports.getCustomerProfile = async(req, res) => {
-    logRequest(req);
-    try {
+        // The verifyToken middleware already added req.user
         const [users] = await db.query(
-            'SELECT id, username, email, fullName FROM users WHERE id = ?', [req.user.id]
+            'SELECT id, username, email, fullName, storeName, role FROM users WHERE id = ?', [req.user.id]
         );
-        if (!users.length) return res.status(404).json({ error: 'Customer not found.' });
+        if (!users.length) return res.status(404).json({ error: 'User not found.' });
         res.json(users[0]);
     } catch (err) {
-        console.error('Customer profile error:', err);
-        res.status(500).json({ error: 'Server error fetching profile.' });
-    }
-};
-
-exports.getRetailerProfile = async(req, res) => {
-    logRequest(req);
-    try {
-        const [retailers] = await db.query(
-            'SELECT id, username, contactEmail, storeName FROM retailers WHERE id = ?', [req.user.id]
-        );
-        if (!retailers.length) return res.status(404).json({ error: 'Retailer not found.' });
-        res.json(retailers[0]);
-    } catch (err) {
-        console.error('Retailer profile error:', err);
-        res.status(500).json({ error: 'Server error fetching profile.' });
+        next(err);
     }
 };
