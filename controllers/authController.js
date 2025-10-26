@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken');
 
 const SECRET = process.env.JWT_SECRET || 'sweetcrust_secret';
 
-// Customer Registration
 exports.registerCustomer = async(req, res) => {
     const { username, password, email, fullName } = req.body;
 
@@ -15,7 +14,7 @@ exports.registerCustomer = async(req, res) => {
     try {
         const hashed = await bcrypt.hash(password, 10);
         await db.query(
-            'INSERT INTO users (username, password, email, fullName, role) VALUES (?, ?, ?, ?, ?)', [username, hashed, email, fullName, 'customer']
+            'INSERT INTO users (username, password, email, fullName) VALUES (?, ?, ?, ?)', [username, hashed, email, fullName]
         );
         console.log('Customer registered:', email);
         res.sendStatus(201);
@@ -29,7 +28,6 @@ exports.registerCustomer = async(req, res) => {
     }
 };
 
-// Customer Login
 exports.loginCustomer = async(req, res) => {
     const { email, password } = req.body;
 
@@ -50,15 +48,14 @@ exports.loginCustomer = async(req, res) => {
             return res.status(401).json({ error: 'Incorrect password. Please try again.' });
         }
 
-        const token = jwt.sign({ id: user.id, role: user.role }, SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ id: user.id }, SECRET, { expiresIn: '1h' });
         res.json({
             token,
             user: {
                 id: user.id,
                 username: user.username,
                 email: user.email,
-                fullName: user.fullName,
-                role: user.role
+                fullName: user.fullName
             }
         });
     } catch (err) {
@@ -67,7 +64,6 @@ exports.loginCustomer = async(req, res) => {
     }
 };
 
-// Retailer Registration
 exports.registerRetailer = async(req, res) => {
     const { username, password, contactEmail, storeName } = req.body;
 
@@ -92,7 +88,6 @@ exports.registerRetailer = async(req, res) => {
     }
 };
 
-// Retailer Login
 exports.loginRetailer = async(req, res) => {
     const { contactEmail, password } = req.body;
 
@@ -113,15 +108,14 @@ exports.loginRetailer = async(req, res) => {
             return res.status(401).json({ error: 'Incorrect password. Please try again.' });
         }
 
-        const token = jwt.sign({ id: retailer.id, role: 'retailer' }, SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ id: retailer.id }, SECRET, { expiresIn: '1h' });
         res.json({
             token,
             retailer: {
                 id: retailer.id,
                 username: retailer.username,
                 contactEmail: retailer.contactEmail,
-                storeName: retailer.storeName,
-                role: 'retailer'
+                storeName: retailer.storeName
             }
         });
     } catch (err) {
