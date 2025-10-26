@@ -10,14 +10,15 @@ app.use(helmet());
 
 app.use(cors({
     origin: [
-        process.env.CORS_ORIGIN || 'https://bakeryapplication-production.up.railway.app',
+        'https://your-frontend-domain.onrender.com',
         'http://localhost:3000'
     ],
-    credentials: true
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
 }));
 
 app.use(express.json());
-
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const authRoutes = require('./routes/auth');
@@ -27,7 +28,7 @@ const cartRoutes = require('./routes/cart');
 const checkoutRoutes = require('./routes/checkout');
 const uploadRoutes = require('./routes/upload');
 
-app.use('/api', authRoutes); // ✅ Now matches /api/register/customer
+app.use('/api', authRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/cart', cartRoutes);
