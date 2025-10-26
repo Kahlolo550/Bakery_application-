@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// 🔗 Hardcoded Railway backend URL
-const API_BASE = 'https://bakeryapplication-production.up.railway.app';
+import API_BASE from '../../config/api';
 
 function CheckoutPage({ token, refreshCart, showNotification }) {
   const [cartItems, setCartItems] = useState([]);
@@ -16,7 +14,7 @@ function CheckoutPage({ token, refreshCart, showNotification }) {
     })
       .then((res) => res.json())
       .then((data) => setCartItems(data))
-      .catch((err) => console.error('Cart fetch error:', err));
+      .catch(() => showNotification('Failed to load cart.', true));
   }, [token]);
 
   useEffect(() => {
@@ -30,7 +28,8 @@ function CheckoutPage({ token, refreshCart, showNotification }) {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/checkout`, {
+
+            const res = await fetch(`${API_BASE}/api/checkout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -51,8 +50,7 @@ function CheckoutPage({ token, refreshCart, showNotification }) {
       } else {
         showNotification(data.error || 'Failed to place order.', true);
       }
-    } catch (err) {
-      console.error('Checkout error:', err);
+    } catch {
       showNotification('Failed to place order.', true);
     }
   };

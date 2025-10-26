@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// 🔗 Hardcoded Railway backend URL
-const API_BASE = 'https://bakeryapplication-production.up.railway.app';
+import API_BASE from '../../config/api';
 
 function CartPage({ token, refreshCart, showNotification }) {
   const [cartItems, setCartItems] = useState([]);
@@ -15,7 +13,7 @@ function CartPage({ token, refreshCart, showNotification }) {
     })
       .then((res) => res.json())
       .then((data) => setCartItems(data))
-      .catch((err) => console.error('Cart fetch error:', err));
+      .catch(() => showNotification('Failed to load cart.', true));
   }, [token]);
 
   useEffect(() => {
@@ -38,8 +36,7 @@ function CartPage({ token, refreshCart, showNotification }) {
       );
       refreshCart();
       showNotification('Quantity updated successfully.');
-    } catch (err) {
-      console.error(err);
+    } catch {
       showNotification('Failed to update quantity.', true);
     }
   };
@@ -53,8 +50,7 @@ function CartPage({ token, refreshCart, showNotification }) {
       setCartItems((prev) => prev.filter((item) => item.id !== id));
       refreshCart();
       showNotification('Item removed from cart.');
-    } catch (err) {
-      console.error(err);
+    } catch {
       showNotification('Failed to remove item.', true);
     }
   };
@@ -85,16 +81,11 @@ function CartPage({ token, refreshCart, showNotification }) {
                       type="number"
                       min="1"
                       value={item.quantity}
-                      onChange={(e) =>
-                        updateQuantity(item.id, parseInt(e.target.value))
-                      }
+                      onChange={(e) => updateQuantity(item.id, parseInt(e.target.value))}
                       className="form-control"
                     />
                   </div>
-                  <button
-                    className="btn btn-sm btn-outline-danger w-100"
-                    onClick={() => removeItem(item.id)}
-                  >
+                  <button className="btn btn-sm btn-outline-danger w-100" onClick={() => removeItem(item.id)}>
                     <i className="fas fa-trash me-2"></i>Remove
                   </button>
                 </div>

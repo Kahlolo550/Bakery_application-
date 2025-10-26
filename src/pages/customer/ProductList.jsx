@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import API_BASE from '../../config/api';
 
 function CustomerProductList({ token, refreshCart, showNotification }) {
   const [products, setProducts] = useState([]);
 
-  // 🔗 Hardcoded Railway backend URL
-  const BACKEND_URL = 'https://bakeryapplication-production.up.railway.app';
-
   useEffect(() => {
-    fetch(`${BACKEND_URL}/api/products/all`)
+    fetch(`${API_BASE}/api/products/all`)
       .then(res => res.json())
       .then(data => setProducts(data.products || []))
       .catch(err => console.error('Product fetch error:', err));
@@ -20,7 +18,7 @@ function CustomerProductList({ token, refreshCart, showNotification }) {
     }
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/cart`, {
+      const res = await fetch(`${API_BASE}/api/cart`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -36,8 +34,7 @@ function CustomerProductList({ token, refreshCart, showNotification }) {
       } else {
         showNotification(data.error || 'Failed to add to cart.', true);
       }
-    } catch (err) {
-      console.error('Add to cart error:', err);
+    } catch {
       showNotification('Something went wrong while adding to cart.', true);
     }
   };
@@ -47,37 +44,19 @@ function CustomerProductList({ token, refreshCart, showNotification }) {
       <h2 className="text-center text-success mb-4">
         <i className="fas fa-store me-2"></i>Available Products
       </h2>
-
       <div className="row">
         {products.map((p) => {
-          const imageUrl = p.photo?.startsWith('http')
-            ? p.photo
-            : `${BACKEND_URL}${p.photo}`;
-
+          const imageUrl = p.photo?.startsWith('http') ? p.photo : `${API_BASE}${p.photo}`;
           return (
             <div key={p.id} className="col-md-6 col-lg-4 mb-4">
               <div className="card h-100 shadow-sm border-0">
-                <img
-                  src={imageUrl}
-                  alt={p.name}
-                  className="card-img-top"
-                  style={{ height: '200px', objectFit: 'cover' }}
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = '/default.jpg';
-                  }}
-                />
+                <img src={imageUrl} alt={p.name} className="card-img-top" style={{ height: '200px', objectFit: 'cover' }} />
                 <div className="card-body d-flex flex-column">
                   <h5 className="card-title">{p.name}</h5>
                   <p className="card-text fw-bold text-success">R{p.price}</p>
-                  <p className="card-text text-muted small">
-                    <i className="fas fa-user me-1"></i>Sold by: {p.retailerName}
-                  </p>
+                  <p className="card-text text-muted small"><i className="fas fa-user me-1"></i>Sold by: {p.retailerName}</p>
                   <p className="card-text small">{p.description}</p>
-                  <button
-                    className="btn btn-outline-success mt-auto"
-                    onClick={() => addToCart(p)}
-                  >
+                  <button className="btn btn-outline-success mt-auto" onClick={() => addToCart(p)}>
                     <i className="fas fa-cart-plus me-2"></i>Add to Cart
                   </button>
                 </div>

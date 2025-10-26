@@ -1,22 +1,17 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import API_BASE from '../../config/api';
 
 function CustomerOrders({ token, showNotification }) {
   const [orders, setOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // 🔗 Hardcoded Railway backend URL
-  const BACKEND_URL = 'https://bakeryapplication-production.up.railway.app';
-
   const fetchOrders = useCallback(() => {
-    fetch(`${BACKEND_URL}/api/orders/customer`, {
+    fetch(`${API_BASE}/api/orders/customer`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
       .then((data) => setOrders(data || []))
-      .catch((err) => {
-        console.error('Order fetch error:', err);
-        showNotification('Failed to load orders.', true);
-      });
+      .catch(() => showNotification('Failed to load orders.', true));
   }, [token, showNotification]);
 
   useEffect(() => {
@@ -25,20 +20,19 @@ function CustomerOrders({ token, showNotification }) {
 
   const deleteOrder = async (orderId) => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/orders/${orderId}`, {
+      const res = await fetch(`${API_BASE}/api/orders/${orderId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      const data = await res.json();
       if (res.ok) {
         setOrders((prev) => prev.filter((o) => o.id !== orderId));
         showNotification('Order deleted successfully.');
       } else {
-        const data = await res.json();
         showNotification(data.error || 'Failed to delete order.', true);
       }
-    } catch (err) {
-      console.error('Delete error:', err);
+    } catch {
       showNotification('Network error while deleting order.', true);
     }
   };
@@ -82,15 +76,11 @@ function CustomerOrders({ token, showNotification }) {
                     <strong>Status:</strong>{' '}
                     <span className={`badge ${order.status === 'completed' ? 'bg-success' : 'bg-warning text-dark'}`}>
                       {order.status}
-                    </span>
-                    <br />
-                    <strong>Date:</strong> {new Date(order.orderDate).toLocaleString()}
-                    <br />
-                    <strong>Address:</strong> {order.address}
-                    <br />
+                    </span><br />
+                    <strong>Date:</strong> {new Date(order.orderDate).toLocaleString()}<br />
+                    <strong>Address:</strong> {order.address}<br />
                     <strong>Phone:</strong> {order.phone}
                   </p>
-
                   <ul className="list-group mb-3">
                     {order.products.map((p) => (
                       <li key={p.id} className="list-group-item d-flex justify-content-between align-items-center">
@@ -99,11 +89,7 @@ function CustomerOrders({ token, showNotification }) {
                       </li>
                     ))}
                   </ul>
-
-                  <button
-                    className="btn btn-outline-danger w-100"
-                    onClick={() => deleteOrder(order.id)}
-                  >
+                  <button className="btn btn-outline-danger w-100" onClick={() => deleteOrder(order.id)}>
                     <i className="fas fa-trash me-2"></i>Delete Order
                   </button>
                 </div>

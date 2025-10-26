@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import API_BASE from './config/api';
 
 import CustomerLogin from './pages/customer/CustomerLogin';
 import RetailerLogin from './pages/seller/RetailerLogin';
@@ -27,7 +28,7 @@ function App() {
 
   const refreshCart = useCallback(() => {
     if (!token) return;
-    fetch('http://localhost:5000/api/cart', {
+    fetch(`${API_BASE}/api/cart`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -81,13 +82,11 @@ function App() {
           )}
 
           <Routes>
-            {/* Auth */}
             <Route path="/customer/login" element={<CustomerLogin onLogin={handleLogin} showNotification={showNotification} />} />
             <Route path="/retailer/login" element={<RetailerLogin onLogin={handleLogin} showNotification={showNotification} />} />
             <Route path="/customer/register" element={<CustomerRegister showNotification={showNotification} />} />
             <Route path="/retailer/register" element={<RetailerRegister showNotification={showNotification} />} />
 
-            {/* Customer */}
             <Route path="/customer/dashboard" element={token && userType === 'customer' ? (
               <CustomerProductList token={token} refreshCart={refreshCart} showNotification={showNotification} />
             ) : (
@@ -109,7 +108,6 @@ function App() {
               <Navigate to="/customer/login" />
             )} />
 
-            {/* Retailer */}
             <Route path="/retailer/dashboard" element={token && userType === 'retailer' ? (
               <RetailerDashboard token={token} showNotification={showNotification} />
             ) : (
@@ -131,7 +129,6 @@ function App() {
               <Navigate to="/retailer/login" />
             )} />
 
-            {/* Fallback */}
             <Route path="*" element={<Navigate to={token ? `/${userType}/dashboard` : '/customer/login'} />} />
           </Routes>
         </div>

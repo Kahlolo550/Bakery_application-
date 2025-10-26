@@ -1,52 +1,44 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import API_BASE from '../../config/api';
 
 function CustomerRegister({ showNotification }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [email, setEmail] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [form, setForm] = useState({ username: '', password: '', confirm: '', email: '', fullName: '' });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // 🔗 Hardcoded Railway backend URL
-  const BACKEND_URL = 'https://bakeryapplication-production.up.railway.app';
-
   const register = async () => {
-    if (password.trim() !== confirm.trim()) {
+    if (form.password.trim() !== form.confirm.trim()) {
       showNotification('Passwords do not match.', true);
       return;
     }
 
-    if (!username.trim() || !email.trim() || !fullName.trim() || !password.trim()) {
+    if (!form.username.trim() || !form.email.trim() || !form.fullName.trim()) {
       showNotification('All fields are required.', true);
       return;
     }
 
     setLoading(true);
-
     try {
-      const res = await fetch(`${BACKEND_URL}/api/auth/register/customer`, {
+      const res = await fetch(`${API_BASE}/api/auth/register/customer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username: username.trim(),
-          password: password.trim(),
-          email: email.trim(),
-          fullName: fullName.trim(),
+          username: form.username.trim(),
+          password: form.password.trim(),
+          email: form.email.trim(),
+          fullName: form.fullName.trim(),
         }),
       });
 
       const data = await res.json();
-
       if (res.ok) {
         showNotification('Customer registered successfully!');
         navigate('/customer/login');
       } else {
         showNotification(data.error || 'Registration failed.', true);
       }
-    } catch (err) {
+    } catch {
       showNotification('Network error. Please try again.', true);
     } finally {
       setLoading(false);
@@ -60,79 +52,21 @@ function CustomerRegister({ showNotification }) {
           <h3 className="text-center text-primary mb-4">
             <i className="fas fa-user-plus me-2"></i>Customer Registration
           </h3>
-
-          <div className="mb-3">
-            <label className="form-label">Full Name</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="e.g. Kahlolo Mokoena"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Email</label>
-            <input
-              type="email"
-              className="form-control"
-              placeholder="e.g. kahlolo@gmail.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Username</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Choose a username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Password</label>
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Create a password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="form-label">Confirm Password</label>
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Re-enter password"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-
+          <input type="text" className="form-control mb-3" placeholder="Full Name"
+            value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} disabled={loading} />
+          <input type="email" className="form-control mb-3" placeholder="Email"
+            value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} disabled={loading} />
+          <input type="text" className="form-control mb-3" placeholder="Username"
+            value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} disabled={loading} />
+          <input type="password" className="form-control mb-3" placeholder="Password"
+            value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} disabled={loading} />
+          <input type="password" className="form-control mb-4" placeholder="Confirm Password"
+            value={form.confirm} onChange={(e) => setForm({ ...form, confirm: e.target.value })} disabled={loading} />
           <button className="btn btn-primary w-100" onClick={register} disabled={loading}>
-            <i className="fas fa-check-circle me-2"></i>
-            {loading ? 'Registering...' : 'Register'}
+            <i className="fas fa-check-circle me-2"></i>{loading ? 'Registering...' : 'Register'}
           </button>
-
           <div className="text-center mt-3">
-            <small>
-              Already have an account?{' '}
-              <Link to="/customer/login" className="text-decoration-none">
-                Log in here
-              </Link>
-            </small>
+            <small>Already have an account? <Link to="/customer/login">Log in here</Link></small>
           </div>
         </div>
       </div>
