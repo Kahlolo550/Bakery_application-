@@ -1,111 +1,150 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import API_BASE from '../../config/api';
 
-function RetailerRegister() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
-  const [storeName, setStoreName] = useState('');
-  const [error, setError] = useState('');
+function RetailerRegister({ showNotification }) {
+  const [form, setForm] = useState({
+    username: '',
+    password: '',
+    confirm: '',
+    contactEmail: '',
+    storeName: ''
+  });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const register = async () => {
-    setError('');
+    if (loading) return;
 
-    if (password !== confirm) {
-      setError('Passwords do not match.');
+    const { username, password, confirm, contactEmail, storeName } = form;
+    const trimmed = {
+      username: username.trim(),
+      password: password.trim(),
+      confirm: confirm.trim(),
+      contactEmail: contactEmail.trim(),
+      storeName: storeName.trim()
+    };
+
+    // ✅ Validation
+    if (!trimmed.username || !trimmed.password || !trimmed.confirm || !trimmed.contactEmail || !trimmed.storeName) {
+      showNotification('All fields are required.', true);
       return;
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmed.contactEmail)) {
+      showNotification('Please enter a valid email address.', true);
+      return;
+    }
+
+    if (trimmed.password.length < 6) {
+      showNotification('Password must be at least 6 characters.', true);
+      return;
+    }
+
+    if (trimmed.password !== trimmed.confirm) {
+      showNotification('Passwords do not match.', true);
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const res = await fetch('http://localhost:5000/api/auth/register/retailer', {
+      const res = await fetch(`${API_BASE}/api/register/retailer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, contactEmail, storeName })
+        body: JSON.stringify({
+          username: trimmed.username,
+          password: trimmed.password,
+          contactEmail: trimmed.contactEmail,
+          storeName: trimmed.storeName
+        })
       });
 
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        const raw = await res.text();
+        console.error('⚠️ Raw response:', raw);
+        showNotification('Unexpected server response.', true);
+        return;
+      }
+
       if (res.ok) {
-        alert('Retailer registered!');
+        showNotification(data.message || 'Retailer registered successfully!');
         navigate('/retailer/login');
       } else {
-        const data = await res.json();
-        setError(data.error || 'Registration failed.');
+        showNotification(data.error || 'Registration failed.', true);
       }
     } catch (err) {
-      setError('Network error. Please try again.');
+      console.error('❌ Retailer registration error:', err);
+      showNotification('Network error. Please try again.', true);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: '500px' }}>
+    <div className="container py-4" style={{ maxWidth: '500px' }}>
       <div className="card shadow-sm border-0">
         <div className="card-body">
           <h3 className="text-center text-success mb-4">
             <i className="fas fa-store me-2"></i>Retailer Registration
           </h3>
 
-          {error && (
-            <div className="alert alert-danger text-center py-2">{error}</div>
-          )}
+          <input
+            type="text"
+            className="form-control mb-3"
+            placeholder="Store Name"
+            value={form.storeName}
+            onChange={(e) => setForm({ ...form, storeName: e.target.value })}
+            disabled={loading}
+          />
 
-          <div className="mb-3">
-            <label className="form-label">Store Name</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="e.g. Sweet Crumbs Bakery"
-              value={storeName}
-              onChange={e => setStoreName(e.target.value)}
-            />
-          </div>
+          <input
+            type="email"
+            className="form-control mb-3"
+            placeholder="Contact Email"
+            value={form.contactEmail}
+            onChange={(e) => setForm({ ...form, contactEmail: e.target.value })}
+            disabled={loading}
+          />
 
-          <div className="mb-3">
-            <label className="form-label">Contact Email</label>
-            <input
-              type="email"
-              className="form-control"
-              placeholder="e.g. sweetcrumbs@gmail.com"
-              value={contactEmail}
-              onChange={e => setContactEmail(e.target.value)}
-            />
-          </div>
+          <input
+            type="text"
+            className="form-control mb-3"
+            placeholder="Username"
+            value={form.username}
+            onChange={(e) => setForm({ ...form, username: e.target.value })}
+            disabled={loading}
+          />
 
-          <div className="mb-3">
-            <label className="form-label">Username</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Choose a username"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-            />
-          </div>
+          <input
+            type="password"
+            className="form-control mb-3"
+            placeholder="Password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            disabled={loading}
+          />
 
-          <div className="mb-3">
-            <label className="form-label">Password</label>
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Create a password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-            />
-          </div>
+          <input
+            type="password"
+            className="form-control mb-4"
+            placeholder="Confirm Password"
+            value={form.confirm}
+            onChange={(e) => setForm({ ...form, confirm: e.target.value })}
+            disabled={loading}
+          />
 
-          <div className="mb-4">
-            <label className="form-label">Confirm Password</label>
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Re-enter password"
-              value={confirm}
-              onChange={e => setConfirm(e.target.value)}
-            />
-          </div>
-
-          <button className="btn btn-success w-100" onClick={register}>
-            <i className="fas fa-user-plus me-2"></i>Register
+          <button
+            className="btn btn-success w-100"
+            onClick={register}
+            disabled={loading}
+          >
+            <i className="fas fa-user-plus me-2"></i>
+            {loading ? 'Registering...' : 'Register'}
           </button>
 
           <div className="text-center mt-3">
