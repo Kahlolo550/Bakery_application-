@@ -25,27 +25,24 @@ function CustomerRegister({ showNotification }) {
       confirm: confirm.trim()
     };
 
-    // ✅ Field validation
     if (!trimmed.username || !trimmed.email || !trimmed.fullName || !trimmed.password || !trimmed.confirm) {
       showNotification('All fields are required.', true);
       return;
     }
 
-    // ✅ Email format check
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmed.email)) {
       showNotification('Please enter a valid email address.', true);
       return;
     }
 
-    // ✅ Password match and length
-    if (trimmed.password !== trimmed.confirm) {
-      showNotification('Passwords do not match.', true);
+    if (trimmed.password.length < 6) {
+      showNotification('Password must be at least 6 characters.', true);
       return;
     }
 
-    if (trimmed.password.length < 6) {
-      showNotification('Password must be at least 6 characters.', true);
+    if (trimmed.password !== trimmed.confirm) {
+      showNotification('Passwords do not match.', true);
       return;
     }
 
@@ -67,12 +64,14 @@ function CustomerRegister({ showNotification }) {
       try {
         data = await res.json();
       } catch {
-        showNotification('Unexpected server response.', true);
+        const raw = await res.text();
+        console.error('⚠️ Raw response:', raw);
+        showNotification('Unexpected server response. Please contact support.', true);
         return;
       }
 
       if (res.ok) {
-        showNotification('Customer registered successfully!');
+        showNotification(data.message || 'Customer registered successfully!');
         navigate('/customer/login');
       } else {
         showNotification(data.error || 'Registration failed.', true);
