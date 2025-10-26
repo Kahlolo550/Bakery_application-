@@ -14,7 +14,7 @@ function CustomerRegister({ showNotification }) {
   const navigate = useNavigate();
 
   const register = async () => {
-    if (loading) return; // prevent double click
+    if (loading) return;
 
     const { username, email, fullName, password, confirm } = form;
     const trimmed = {
@@ -25,18 +25,30 @@ function CustomerRegister({ showNotification }) {
       confirm: confirm.trim()
     };
 
-    // ✅ Validate all fields first — return immediately if invalid
+    // ✅ Field validation
     if (!trimmed.username || !trimmed.email || !trimmed.fullName || !trimmed.password || !trimmed.confirm) {
       showNotification('All fields are required.', true);
       return;
     }
 
+    // ✅ Email format check
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmed.email)) {
+      showNotification('Please enter a valid email address.', true);
+      return;
+    }
+
+    // ✅ Password match and length
     if (trimmed.password !== trimmed.confirm) {
       showNotification('Passwords do not match.', true);
       return;
     }
 
-    // ✅ Now safe to call backend
+    if (trimmed.password.length < 6) {
+      showNotification('Password must be at least 6 characters.', true);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -51,7 +63,6 @@ function CustomerRegister({ showNotification }) {
         })
       });
 
-      // Safely try to parse JSON
       let data;
       try {
         data = await res.json();
