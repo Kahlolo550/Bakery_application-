@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 function NavbarCustomer({ cartItems, onLogout }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleDropdown = () => setIsOpen(!isOpen);
+  const closeDropdown = () => setIsOpen(false);
+
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded shadow-sm">
       <div className="container-fluid">
@@ -11,7 +16,7 @@ function NavbarCustomer({ cartItems, onLogout }) {
           Customer Panel
         </Link>
 
-        {/* Toggler for mobile */}
+        {/* Mobile toggler */}
         <button
           className="navbar-toggler"
           type="button"
@@ -43,23 +48,30 @@ function NavbarCustomer({ cartItems, onLogout }) {
               </Link>
             </li>
 
-            {/* Cart Dropdown */}
-            <li className="nav-item dropdown">
+            {/* Cart Dropdown (React-controlled) */}
+            <li className={`nav-item dropdown ${isOpen ? 'show' : ''}`}>
               <button
                 className="nav-link dropdown-toggle btn btn-link"
                 type="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
+                onClick={toggleDropdown}
+                aria-expanded={isOpen}
               >
                 <i className="fas fa-shopping-cart me-2"></i>
                 Cart ({cartItems.length})
               </button>
-              <ul className="dropdown-menu dropdown-menu-end p-2" style={{ minWidth: '260px' }}>
+              <ul
+                className={`dropdown-menu dropdown-menu-end p-2 ${isOpen ? 'show' : ''}`}
+                style={{ minWidth: '260px' }}
+              >
                 {cartItems.length === 0 ? (
                   <li className="dropdown-item text-muted">
                     Cart is empty
                     <div className="mt-2">
-                      <Link to="/customer/dashboard" className="btn btn-sm btn-outline-primary w-100">
+                      <Link
+                        to="/customer/dashboard"
+                        className="btn btn-sm btn-outline-primary w-100"
+                        onClick={closeDropdown}
+                      >
                         Browse Products
                       </Link>
                     </div>
@@ -77,7 +89,11 @@ function NavbarCustomer({ cartItems, onLogout }) {
                 )}
                 <li><hr className="dropdown-divider" /></li>
                 <li>
-                  <Link className="dropdown-item text-center" to="/customer/cart">
+                  <Link
+                    className="dropdown-item text-center"
+                    to="/customer/cart"
+                    onClick={closeDropdown}
+                  >
                     View Full Cart
                   </Link>
                 </li>
@@ -85,6 +101,7 @@ function NavbarCustomer({ cartItems, onLogout }) {
             </li>
           </ul>
 
+          {/* Logout Button */}
           <button className="btn btn-outline-dark" onClick={onLogout}>
             <i className="fas fa-sign-out-alt me-2"></i>
             Logout
