@@ -14,6 +14,8 @@ function CustomerRegister({ showNotification }) {
   const navigate = useNavigate();
 
   const register = async () => {
+    if (loading) return; // prevent double click
+
     const { username, email, fullName, password, confirm } = form;
     const trimmed = {
       username: username.trim(),
@@ -23,7 +25,7 @@ function CustomerRegister({ showNotification }) {
       confirm: confirm.trim()
     };
 
-    // ✅ Validate all fields
+    // ✅ Validate all fields first — return immediately if invalid
     if (!trimmed.username || !trimmed.email || !trimmed.fullName || !trimmed.password || !trimmed.confirm) {
       showNotification('All fields are required.', true);
       return;
@@ -34,7 +36,9 @@ function CustomerRegister({ showNotification }) {
       return;
     }
 
+    // ✅ Now safe to call backend
     setLoading(true);
+
     try {
       const res = await fetch(`${API_BASE}/register/customer`, {
         method: 'POST',
@@ -47,6 +51,7 @@ function CustomerRegister({ showNotification }) {
         })
       });
 
+      // Safely try to parse JSON
       let data;
       try {
         data = await res.json();
@@ -62,8 +67,8 @@ function CustomerRegister({ showNotification }) {
         showNotification(data.error || 'Registration failed.', true);
       }
     } catch (err) {
-      console.error('Registration fetch error:', err);
-      showNotification(`Network error: ${err.message}`, true);
+      console.error('❌ Registration network error:', err);
+      showNotification('Network error: Please check your connection.', true);
     } finally {
       setLoading(false);
     }
@@ -77,38 +82,65 @@ function CustomerRegister({ showNotification }) {
             <i className="fas fa-user-plus me-2"></i>Customer Registration
           </h3>
 
-          <input type="text" className="form-control mb-3" placeholder="Full Name"
+          <input
+            type="text"
+            className="form-control mb-3"
+            placeholder="Full Name"
             value={form.fullName}
             onChange={(e) => setForm({ ...form, fullName: e.target.value })}
             disabled={loading}
           />
-          <input type="email" className="form-control mb-3" placeholder="Email"
+
+          <input
+            type="email"
+            className="form-control mb-3"
+            placeholder="Email"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
             disabled={loading}
           />
-          <input type="text" className="form-control mb-3" placeholder="Username"
+
+          <input
+            type="text"
+            className="form-control mb-3"
+            placeholder="Username"
             value={form.username}
             onChange={(e) => setForm({ ...form, username: e.target.value })}
             disabled={loading}
           />
-          <input type="password" className="form-control mb-3" placeholder="Password"
+
+          <input
+            type="password"
+            className="form-control mb-3"
+            placeholder="Password"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             disabled={loading}
           />
-          <input type="password" className="form-control mb-4" placeholder="Confirm Password"
+
+          <input
+            type="password"
+            className="form-control mb-4"
+            placeholder="Confirm Password"
             value={form.confirm}
             onChange={(e) => setForm({ ...form, confirm: e.target.value })}
             disabled={loading}
           />
 
-          <button className="btn btn-primary w-100" onClick={register} disabled={loading}>
-            <i className="fas fa-check-circle me-2"></i>{loading ? 'Registering...' : 'Register'}
+          <button
+            className="btn btn-primary w-100"
+            onClick={register}
+            disabled={loading}
+          >
+            <i className="fas fa-check-circle me-2"></i>
+            {loading ? 'Registering...' : 'Register'}
           </button>
 
           <div className="text-center mt-3">
-            <small>Already have an account? <Link to="/customer/login">Log in here</Link></small>
+            <small>
+              Already have an account?{' '}
+              <Link to="/customer/login">Log in here</Link>
+            </small>
           </div>
         </div>
       </div>
