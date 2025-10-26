@@ -83,7 +83,11 @@ function CustomerProductList({ token, refreshCart, showNotification }) {
             </div>
           ) : (
             products.map((p) => {
-              const imageUrl = p.photo?.startsWith('http') ? p.photo : `${API_BASE}${p.photo}`;
+              // ✅ Ensure correct image URL for both local and deployed
+              const imageUrl = p.photo?.startsWith('http')
+                ? p.photo
+                : `${API_BASE}${p.photo}`;
+
               return (
                 <div key={p.id} className="col-md-6 col-lg-4 mb-4">
                   <div className="card h-100 shadow-sm border-0">
