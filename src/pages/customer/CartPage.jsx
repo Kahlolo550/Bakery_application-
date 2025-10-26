@@ -4,6 +4,7 @@ import API_BASE from '../../config/api';
 
 function CartPage({ token, refreshCart, showNotification }) {
   const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const fetchCart = useCallback(() => {
@@ -14,7 +15,7 @@ function CartPage({ token, refreshCart, showNotification }) {
       .then((res) => res.json())
       .then((data) => setCartItems(data))
       .catch(() => showNotification('Failed to load cart.', true));
-  }, [token]);
+  }, [token, showNotification]); // ✅ ESLint-safe
 
   useEffect(() => {
     fetchCart();
@@ -22,6 +23,7 @@ function CartPage({ token, refreshCart, showNotification }) {
 
   const updateQuantity = async (id, qty) => {
     if (qty < 1) return;
+    setLoading(true);
     try {
       await fetch(`${API_BASE}/api/cart/${id}`, {
         method: 'PUT',
@@ -38,10 +40,13 @@ function CartPage({ token, refreshCart, showNotification }) {
       showNotification('Quantity updated successfully.');
     } catch {
       showNotification('Failed to update quantity.', true);
+    } finally {
+      setLoading(false);
     }
   };
 
   const removeItem = async (id) => {
+    setLoading(true);
     try {
       await fetch(`${API_BASE}/api/cart/${id}`, {
         method: 'DELETE',
@@ -52,6 +57,8 @@ function CartPage({ token, refreshCart, showNotification }) {
       showNotification('Item removed from cart.');
     } catch {
       showNotification('Failed to remove item.', true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -83,9 +90,14 @@ function CartPage({ token, refreshCart, showNotification }) {
                       value={item.quantity}
                       onChange={(e) => updateQuantity(item.id, parseInt(e.target.value))}
                       className="form-control"
+                      disabled={loading}
                     />
                   </div>
-                  <button className="btn btn-sm btn-outline-danger w-100" onClick={() => removeItem(item.id)}>
+                  <button
+                    className="btn btn-sm btn-outline-danger w-100"
+                    onClick={() => removeItem(item.id)}
+                    disabled={loading}
+                  >
                     <i className="fas fa-trash me-2"></i>Remove
                   </button>
                 </div>
@@ -93,7 +105,7 @@ function CartPage({ token, refreshCart, showNotification }) {
             </div>
           ))}
           <div className="col-12 text-center mt-4">
-            <button className="btn btn-success btn-lg" onClick={goToCheckout}>
+            <button className="btn btn-success btn-lg" onClick={goToCheckout} disabled={loading}>
               <i className="fas fa-credit-card me-2"></i>Proceed to Checkout
             </button>
           </div>
