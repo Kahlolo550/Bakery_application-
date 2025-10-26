@@ -3,45 +3,43 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
 
-const SECRET = process.env.JWT_SECRET;
+// ✅ Fallback for Railway secret
+const SECRET = process.env.JWT_SECRET || process.env.RAILWAY_SECRET_JWT_SECRET;
 if (!SECRET) {
     throw new Error('FATAL: JWT_SECRET environment variable is not defined.');
 }
 
-// User validation schemas
+// ✅ Validation Schemas
 const userSchema = Joi.object({
     username: Joi.string().min(3).max(30).required(),
     password: Joi.string().min(8).required(),
     email: Joi.string().email().required(),
-    fullName: Joi.string().required(),
+    fullName: Joi.string().required()
 });
 
 const retailerSchema = Joi.object({
     username: Joi.string().min(3).max(30).required(),
     password: Joi.string().min(8).required(),
     contactEmail: Joi.string().email().required(),
-    storeName: Joi.string().required(),
+    storeName: Joi.string().required()
 });
 
 const loginSchema = Joi.object({
     email: Joi.string().email().required(),
-    password: Joi.string().required(),
+    password: Joi.string().required()
 });
 
-// Middleware for validation
+// ✅ Middleware
 const validate = (schema) => (req, res, next) => {
     const { error } = schema.validate(req.body);
-    if (error) {
-        return res.status(400).json({ error: error.details[0].message });
-    }
+    if (error) return res.status(400).json({ error: error.details[0].message });
     next();
 };
 
-function generateToken(id, role) {
-    return jwt.sign({ id, role }, SECRET, { expiresIn: '1h' });
-}
+const generateToken = (id, role) => jwt.sign({ id, role }, SECRET, { expiresIn: '1h' });
 
-// Customer Registration
+
+// ✅ Customer Registration
 exports.registerCustomer = [validate(userSchema), async(req, res, next) => {
     const { username, password, email, fullName } = req.body;
     try {
@@ -54,11 +52,30 @@ exports.registerCustomer = [validate(userSchema), async(req, res, next) => {
         if (err.code === 'ER_DUP_ENTRY') {
             return res.status(409).json({ error: 'Username or email already exists.' });
         }
-        next(err); // Pass error to the global error handler
+        next(err);
     }
 }];
 
-// User Login (for both customer and retailer)
+
+// ✅ Retailer Registration
+exports.registerRetailer = [validate(retailerSchema), async(req, res, next) => {
+    const { username, password, contactEmail, storeName } = req.body;
+    try {
+        const hashed = await bcrypt.hash(password, 10);
+        await db.query(
+            'INSERT INTO users (username, password, email, storeName, role) VALUES (?, ?, ?, ?, "retailer")', [username, hashed, contactEmail, storeName]
+        );
+        res.status(201).json({ message: 'Retailer registered successfully.' });
+    } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ error: 'Username or email already exists.' });
+        }
+        next(err);
+    }
+}];
+
+
+// ✅ Login (Customer or Retailer)
 exports.loginUser = [validate(loginSchema), async(req, res, next) => {
     const { email, password } = req.body;
     try {
@@ -84,27 +101,10 @@ exports.loginUser = [validate(loginSchema), async(req, res, next) => {
     }
 }];
 
-// Retailer Registration
-exports.registerRetailer = [validate(retailerSchema), async(req, res, next) => {
-    const { username, password, contactEmail, storeName } = req.body;
-    try {
-        const hashed = await bcrypt.hash(password, 10);
-        await db.query(
-            'INSERT INTO users (username, password, email, storeName, role) VALUES (?, ?, ?, ?, "retailer")', [username, hashed, contactEmail, storeName]
-        );
-        res.status(201).json({ message: 'Retailer registered successfully.' });
-    } catch (err) {
-        if (err.code === 'ER_DUP_ENTRY') {
-            return res.status(409).json({ error: 'Username or email already exists.' });
-        }
-        next(err);
-    }
-}];
 
-// User Profile (single endpoint for both)
+// ✅ Unified Profile Endpoint
 exports.getProfile = async(req, res, next) => {
     try {
-        // The verifyToken middleware already added req.user
         const [users] = await db.query(
             'SELECT id, username, email, fullName, storeName, role FROM users WHERE id = ?', [req.user.id]
         );
