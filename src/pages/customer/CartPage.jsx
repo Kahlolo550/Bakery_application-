@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
+
 function CartPage({ token, refreshCart, showNotification }) {
   const [cartItems, setCartItems] = useState([]);
   const navigate = useNavigate();
 
   const fetchCart = useCallback(() => {
     if (!token) return;
-    fetch('http://localhost:5000/api/cart', {
+    fetch(`${API_BASE}/api/cart`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -22,7 +24,7 @@ function CartPage({ token, refreshCart, showNotification }) {
   const updateQuantity = async (id, qty) => {
     if (qty < 1) return;
     try {
-      await fetch(`http://localhost:5000/api/cart/${id}`, {
+      await fetch(`${API_BASE}/api/cart/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -43,7 +45,7 @@ function CartPage({ token, refreshCart, showNotification }) {
 
   const removeItem = async (id) => {
     try {
-      await fetch(`http://localhost:5000/api/cart/${id}`, {
+      await fetch(`${API_BASE}/api/cart/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

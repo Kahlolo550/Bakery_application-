@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
+
 function CheckoutPage({ token, refreshCart, showNotification }) {
   const [cartItems, setCartItems] = useState([]);
   const [formData, setFormData] = useState({ address: '', phone: '', note: '' });
@@ -8,7 +10,7 @@ function CheckoutPage({ token, refreshCart, showNotification }) {
 
   const fetchCart = useCallback(() => {
     if (!token) return;
-    fetch('http://localhost:5000/api/cart', {
+    fetch(`${API_BASE}/api/cart`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -27,7 +29,7 @@ function CheckoutPage({ token, refreshCart, showNotification }) {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/checkout', {
+      const res = await fetch(`${API_BASE}/api/checkout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
