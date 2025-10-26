@@ -85,7 +85,6 @@ function NavbarCustomer({ cartItems, onLogout }) {
             </li>
           </ul>
 
-          {/* Logout Button */}
           <button className="btn btn-outline-dark" onClick={onLogout}>
             <i className="fas fa-sign-out-alt me-2"></i>
             Logout
