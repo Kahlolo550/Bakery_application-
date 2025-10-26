@@ -47,8 +47,8 @@ app.get('/health', (req, res) => {
 // Serve frontend static files from top-level build/
 app.use(express.static(path.join(__dirname, 'build')));
 
-// Fallback to frontend for unknown routes
-app.get('*', (req, res) => {
+// Fallback to frontend for unknown routes (safe wildcard)
+app.get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
