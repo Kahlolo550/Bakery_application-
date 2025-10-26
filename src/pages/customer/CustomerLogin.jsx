@@ -16,23 +16,25 @@ function CustomerLogin({ onLogin, showNotification }) {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/customer/login`, {
+      const res = await fetch(`${API_BASE}/api/login/customer`, { // <-- make sure route matches backend
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), password: password.trim() }),
       });
 
       const data = await res.json();
+
       if (res.ok && data.token) {
-        localStorage.setItem('token', data.token); // ✅ Store token for protected routes
+        localStorage.setItem('token', data.token);
         onLogin(data.token, 'customer');
         showNotification('Login successful!');
         navigate('/customer/dashboard');
       } else {
-        showNotification(data.error || 'Login failed.', true);
+        showNotification(data.error || `Login failed with status ${res.status}`, true);
       }
-    } catch {
-      showNotification('Network error. Please check your connection.', true);
+    } catch (err) {
+      console.error('Login error:', err); // log actual error in console
+      showNotification(`Network error: ${err.message}`, true); // show actual error message
     } finally {
       setLoading(false);
     }
