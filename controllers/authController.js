@@ -3,14 +3,13 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
 
-// ✅ Fallback for Railway secret
 const SECRET = process.env.JWT_SECRET || process.env.RAILWAY_SECRET_JWT_SECRET;
 if (!SECRET) {
     throw new Error('FATAL: JWT_SECRET environment variable is not defined.');
 }
 
-// ✅ Validation Schemas
-const userSchema = Joi.object({
+// Validation schemas
+const customerSchema = Joi.object({
     username: Joi.string().min(3).max(30).required(),
     password: Joi.string().min(8).required(),
     email: Joi.string().email().required(),
@@ -29,7 +28,6 @@ const loginSchema = Joi.object({
     password: Joi.string().required()
 });
 
-// ✅ Middleware
 const validate = (schema) => (req, res, next) => {
     const { error } = schema.validate(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message });
@@ -38,9 +36,8 @@ const validate = (schema) => (req, res, next) => {
 
 const generateToken = (id, role) => jwt.sign({ id, role }, SECRET, { expiresIn: '1h' });
 
-
-// ✅ Customer Registration
-exports.registerCustomer = [validate(userSchema), async(req, res, next) => {
+// Customer Registration
+exports.registerCustomer = [validate(customerSchema), async(req, res, next) => {
     const { username, password, email, fullName } = req.body;
     try {
         const hashed = await bcrypt.hash(password, 10);
@@ -56,8 +53,7 @@ exports.registerCustomer = [validate(userSchema), async(req, res, next) => {
     }
 }];
 
-
-// ✅ Retailer Registration
+// Retailer Registration
 exports.registerRetailer = [validate(retailerSchema), async(req, res, next) => {
     const { username, password, contactEmail, storeName } = req.body;
     try {
@@ -74,8 +70,7 @@ exports.registerRetailer = [validate(retailerSchema), async(req, res, next) => {
     }
 }];
 
-
-// ✅ Login (Customer or Retailer)
+// Login (Customer or Retailer)
 exports.loginUser = [validate(loginSchema), async(req, res, next) => {
     const { email, password } = req.body;
     try {
@@ -101,8 +96,7 @@ exports.loginUser = [validate(loginSchema), async(req, res, next) => {
     }
 }];
 
-
-// ✅ Unified Profile Endpoint
+// Profile
 exports.getProfile = async(req, res, next) => {
     try {
         const [users] = await db.query(

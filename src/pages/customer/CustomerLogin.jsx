@@ -16,26 +16,23 @@ function CustomerLogin({ onLogin, showNotification }) {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/login/customer`, {
+      const res = await fetch(`${API_BASE}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), password: password.trim() }),
       });
 
       const data = await res.json();
-
-      if (res.ok && data.token) {
+      if (res.ok && data.token && data.user.role === 'customer') {
         localStorage.setItem('token', data.token);
         onLogin(data.token, 'customer');
         showNotification('Login successful!');
         navigate('/customer/dashboard');
       } else {
-        // Show actual error from backend
-        const errorMessage = data.error || 'Login failed.';
-        showNotification(errorMessage, true);
+        showNotification(data.error || 'Login failed.', true);
       }
     } catch (err) {
-      // Show actual fetch/network error
+      console.error('Login error:', err);
       showNotification(`Network error: ${err.message}`, true);
     } finally {
       setLoading(false);
