@@ -22,11 +22,11 @@ module.exports = {
     production: {
         client: 'mysql2',
         connection: {
-            host: 'mysql.railway.internal',
+            host: 'maglev.proxy.rlwy.net',
+            port: 15527,
             user: 'root',
             password: 'BQYUYgyrghmpbbEUhJXAWkgZrqXZERzg',
-            database: 'railway',
-            port: 3306
+            database: 'railway'
         },
         migrations: {
             directory: './migrations',
