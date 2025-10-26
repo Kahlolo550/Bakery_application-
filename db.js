@@ -18,14 +18,24 @@ const pool = mysql.createPool(dbConfig);
 
 // Test connection with detailed error logging
 pool.getConnection((err, connection) => {
-    if (err) {
-        console.error('❌ MySQL connection failed!');
-        console.error('🔎 Error message:', err.message);
-        console.error('📄 Full error:', err);
-    } else {
-        console.log('✅ MySQL connected successfully');
-        connection.release();
-    }
+    pool.getConnection((err, connection) => {
+        if (err) {
+            console.error('MySQL connection failed!');
+            console.error('Error object:', err); // full error
+            console.error('Stack trace:', err.stack); // stack trace
+            console.error('Config used:', {
+                host: process.env.MYSQLHOST,
+                port: process.env.MYSQLPORT,
+                user: process.env.MYSQLUSER,
+                password: process.env.MYSQLPASSWORD ? '***' : '(missing)',
+                database: process.env.MYSQLDATABASE,
+            });
+        } else {
+            console.log('MySQL connected successfully');
+            connection.release();
+        }
+    });
+
 });
 
 module.exports = pool.promise();
