@@ -6,18 +6,19 @@ const Joi = require('joi');
 const SECRET = process.env.JWT_SECRET || process.env.RAILWAY_SECRET_JWT_SECRET;
 if (!SECRET) throw new Error('FATAL: JWT_SECRET is not defined');
 
+// Middleware: Joi validation
 const validate = (schema) => (req, res, next) => {
     const { error } = schema.validate(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message });
     next();
 };
 
-// 🔐 Registration Schemas
+// 🔐 Registration schema
 const registerSchema = Joi.object({
     username: Joi.string().min(3).required(),
     email: Joi.string().email().required(),
     password: Joi.string().min(6).required(),
-    fullName: Joi.string().min(3).required() // ✅ added fullName
+    fullName: Joi.string().min(3).required()
 });
 
 // ✅ Register Customer
@@ -27,7 +28,8 @@ exports.registerCustomer = [
         const { username, email, password, fullName } = req.body;
         try {
             const [existing] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
-            if (existing.length > 0) return res.status(409).json({ error: 'Email already registered.' });
+            if (existing.length > 0)
+                return res.status(409).json({ error: 'Email already registered.' });
 
             const hashed = await bcrypt.hash(password, 10);
             await db.query(
@@ -42,14 +44,15 @@ exports.registerCustomer = [
     }
 ];
 
-// ✅ Register Retailer (optional: add fullName if you want)
+// ✅ Register Retailer
 exports.registerRetailer = [
     validate(registerSchema),
     async(req, res, next) => {
         const { username, email, password, fullName } = req.body;
         try {
             const [existing] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
-            if (existing.length > 0) return res.status(409).json({ error: 'Email already registered.' });
+            if (existing.length > 0)
+                return res.status(409).json({ error: 'Email already registered.' });
 
             const hashed = await bcrypt.hash(password, 10);
             await db.query(
@@ -64,12 +67,13 @@ exports.registerRetailer = [
     }
 ];
 
-// ✅ Login
+// ✅ Login schema
 const loginSchema = Joi.object({
     email: Joi.string().email().required(),
     password: Joi.string().required()
 });
 
+// ✅ Login
 exports.loginUser = [
     validate(loginSchema),
     async(req, res, next) => {
@@ -77,10 +81,12 @@ exports.loginUser = [
         try {
             const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
             const user = users[0];
-            if (!user) return res.status(401).json({ error: 'Invalid email or password.' });
+            if (!user)
+                return res.status(401).json({ error: 'Invalid email or password.' });
 
             const match = await bcrypt.compare(password, user.password);
-            if (!match) return res.status(401).json({ error: 'Invalid email or password.' });
+            if (!match)
+                return res.status(401).json({ error: 'Invalid email or password.' });
 
             const token = jwt.sign({ id: user.id, role: user.role }, SECRET, { expiresIn: '1h' });
             res.json({
