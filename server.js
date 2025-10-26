@@ -44,12 +44,12 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'Bakery backend is alive!' });
 });
 
-// Serve frontend static files
-app.use(express.static(path.join(__dirname, '../client/build')));
+// Serve frontend static files from top-level build/
+app.use(express.static(path.join(__dirname, 'build')));
 
 // Fallback to frontend for unknown routes
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 // Start server
