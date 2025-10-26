@@ -4,8 +4,11 @@ function CustomerOrders({ token, showNotification }) {
   const [orders, setOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // 🔗 Hardcoded Railway backend URL
+  const BACKEND_URL = 'https://bakeryapplication-production.up.railway.app';
+
   const fetchOrders = useCallback(() => {
-    fetch('http://localhost:5000/api/orders/customer', {
+    fetch(`${BACKEND_URL}/api/orders/customer`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -22,7 +25,7 @@ function CustomerOrders({ token, showNotification }) {
 
   const deleteOrder = async (orderId) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+      const res = await fetch(`${BACKEND_URL}/api/orders/${orderId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

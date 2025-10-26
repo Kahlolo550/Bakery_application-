@@ -3,8 +3,11 @@ import React, { useState, useEffect } from 'react';
 function CustomerProductList({ token, refreshCart, showNotification }) {
   const [products, setProducts] = useState([]);
 
+  // 🔗 Hardcoded Railway backend URL
+  const BACKEND_URL = 'https://bakeryapplication-production.up.railway.app';
+
   useEffect(() => {
-    fetch('http://localhost:5000/api/products/all')
+    fetch(`${BACKEND_URL}/api/products/all`)
       .then(res => res.json())
       .then(data => setProducts(data.products || []))
       .catch(err => console.error('Product fetch error:', err));
@@ -17,7 +20,7 @@ function CustomerProductList({ token, refreshCart, showNotification }) {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/cart', {
+      const res = await fetch(`${BACKEND_URL}/api/cart`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +52,7 @@ function CustomerProductList({ token, refreshCart, showNotification }) {
         {products.map((p) => {
           const imageUrl = p.photo?.startsWith('http')
             ? p.photo
-            : `http://localhost:5000${p.photo}`;
+            : `${BACKEND_URL}${p.photo}`;
 
           return (
             <div key={p.id} className="col-md-6 col-lg-4 mb-4">

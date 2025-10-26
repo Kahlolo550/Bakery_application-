@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
+// 🔗 Hardcoded Railway backend URL
+const API_BASE = 'https://bakeryapplication-production.up.railway.app';
 
 function CartPage({ token, refreshCart, showNotification }) {
   const [cartItems, setCartItems] = useState([]);

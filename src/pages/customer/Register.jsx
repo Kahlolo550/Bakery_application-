@@ -7,30 +7,49 @@ function CustomerRegister({ showNotification }) {
   const [confirm, setConfirm] = useState('');
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // 🔗 Hardcoded Railway backend URL
+  const BACKEND_URL = 'https://bakeryapplication-production.up.railway.app';
+
   const register = async () => {
-    if (password !== confirm) {
+    if (password.trim() !== confirm.trim()) {
       showNotification('Passwords do not match.', true);
       return;
     }
 
+    if (!username.trim() || !email.trim() || !fullName.trim() || !password.trim()) {
+      showNotification('All fields are required.', true);
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const res = await fetch('http://localhost:5000/api/auth/register/customer', {
+      const res = await fetch(`${BACKEND_URL}/api/auth/register/customer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, email, fullName }),
+        body: JSON.stringify({
+          username: username.trim(),
+          password: password.trim(),
+          email: email.trim(),
+          fullName: fullName.trim(),
+        }),
       });
+
+      const data = await res.json();
 
       if (res.ok) {
         showNotification('Customer registered successfully!');
         navigate('/customer/login');
       } else {
-        const data = await res.json();
         showNotification(data.error || 'Registration failed.', true);
       }
     } catch (err) {
       showNotification('Network error. Please try again.', true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,6 +69,7 @@ function CustomerRegister({ showNotification }) {
               placeholder="e.g. Kahlolo Mokoena"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
+              disabled={loading}
             />
           </div>
 
@@ -61,6 +81,7 @@ function CustomerRegister({ showNotification }) {
               placeholder="e.g. kahlolo@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
             />
           </div>
 
@@ -72,6 +93,7 @@ function CustomerRegister({ showNotification }) {
               placeholder="Choose a username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              disabled={loading}
             />
           </div>
 
@@ -83,6 +105,7 @@ function CustomerRegister({ showNotification }) {
               placeholder="Create a password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
             />
           </div>
 
@@ -94,11 +117,13 @@ function CustomerRegister({ showNotification }) {
               placeholder="Re-enter password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
+              disabled={loading}
             />
           </div>
 
-          <button className="btn btn-primary w-100" onClick={register}>
-            <i className="fas fa-check-circle me-2"></i>Register
+          <button className="btn btn-primary w-100" onClick={register} disabled={loading}>
+            <i className="fas fa-check-circle me-2"></i>
+            {loading ? 'Registering...' : 'Register'}
           </button>
 
           <div className="text-center mt-3">

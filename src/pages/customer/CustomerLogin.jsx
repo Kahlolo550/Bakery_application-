@@ -4,19 +4,28 @@ import { useNavigate, Link } from 'react-router-dom';
 function CustomerLogin({ onLogin, showNotification }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // 🔗 Hardcoded Railway backend URL
+  const BACKEND_URL = 'https://bakeryapplication-production.up.railway.app';
+
   const login = async () => {
-    if (!email || !password) {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
       showNotification('Email and password are required.', true);
       return;
     }
 
+    setLoading(true);
+
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login/customer', {
+      const res = await fetch(`${BACKEND_URL}/api/auth/login/customer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword }),
       });
 
       const data = await res.json();
@@ -30,7 +39,13 @@ function CustomerLogin({ onLogin, showNotification }) {
       }
     } catch (err) {
       showNotification('Network error. Please check your connection.', true);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') login();
   };
 
   return (
@@ -49,6 +64,8 @@ function CustomerLogin({ onLogin, showNotification }) {
               placeholder="e.g. kahlolo@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={loading}
             />
           </div>
 
@@ -60,11 +77,14 @@ function CustomerLogin({ onLogin, showNotification }) {
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={loading}
             />
           </div>
 
-          <button className="btn btn-primary w-100" onClick={login}>
-            <i className="fas fa-lock me-2"></i>Login
+          <button className="btn btn-primary w-100" onClick={login} disabled={loading}>
+            <i className="fas fa-lock me-2"></i>
+            {loading ? 'Logging in...' : 'Login'}
           </button>
 
           <div className="text-center mt-3">

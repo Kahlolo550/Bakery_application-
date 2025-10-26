@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
+// 🔗 Hardcoded Railway backend URL
+const API_BASE = 'https://bakeryapplication-production.up.railway.app';
 
 function CheckoutPage({ token, refreshCart, showNotification }) {
   const [cartItems, setCartItems] = useState([]);
@@ -23,7 +24,7 @@ function CheckoutPage({ token, refreshCart, showNotification }) {
   }, [fetchCart]);
 
   const placeOrder = async () => {
-    if (!formData.address || !formData.phone) {
+    if (!formData.address.trim() || !formData.phone.trim()) {
       showNotification('Address and phone are required.', true);
       return;
     }
@@ -35,7 +36,11 @@ function CheckoutPage({ token, refreshCart, showNotification }) {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          address: formData.address.trim(),
+          phone: formData.phone.trim(),
+          note: formData.note.trim(),
+        }),
       });
 
       const data = await res.json();
