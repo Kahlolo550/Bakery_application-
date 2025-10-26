@@ -14,13 +14,23 @@ function CustomerRegister({ showNotification }) {
   const navigate = useNavigate();
 
   const register = async () => {
-    if (form.password.trim() !== form.confirm.trim()) {
-      showNotification('Passwords do not match.', true);
+    const { username, email, fullName, password, confirm } = form;
+    const trimmed = {
+      username: username.trim(),
+      email: email.trim(),
+      fullName: fullName.trim(),
+      password: password.trim(),
+      confirm: confirm.trim()
+    };
+
+    // ✅ Validate all fields
+    if (!trimmed.username || !trimmed.email || !trimmed.fullName || !trimmed.password || !trimmed.confirm) {
+      showNotification('All fields are required.', true);
       return;
     }
 
-    if (!form.username.trim() || !form.email.trim() || !form.fullName.trim()) {
-      showNotification('All fields are required.', true);
+    if (trimmed.password !== trimmed.confirm) {
+      showNotification('Passwords do not match.', true);
       return;
     }
 
@@ -30,10 +40,10 @@ function CustomerRegister({ showNotification }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username: form.username.trim(),
-          password: form.password.trim(),
-          email: form.email.trim(),
-          fullName: form.fullName.trim()
+          username: trimmed.username,
+          password: trimmed.password,
+          email: trimmed.email,
+          fullName: trimmed.fullName
         })
       });
 
@@ -66,6 +76,7 @@ function CustomerRegister({ showNotification }) {
           <h3 className="text-center text-primary mb-4">
             <i className="fas fa-user-plus me-2"></i>Customer Registration
           </h3>
+
           <input type="text" className="form-control mb-3" placeholder="Full Name"
             value={form.fullName}
             onChange={(e) => setForm({ ...form, fullName: e.target.value })}
@@ -91,9 +102,11 @@ function CustomerRegister({ showNotification }) {
             onChange={(e) => setForm({ ...form, confirm: e.target.value })}
             disabled={loading}
           />
+
           <button className="btn btn-primary w-100" onClick={register} disabled={loading}>
             <i className="fas fa-check-circle me-2"></i>{loading ? 'Registering...' : 'Register'}
           </button>
+
           <div className="text-center mt-3">
             <small>Already have an account? <Link to="/customer/login">Log in here</Link></small>
           </div>
