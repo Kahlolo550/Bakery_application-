@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 /**
  * @type { Object.<string, import("knex").Knex.Config> }
  */
@@ -23,7 +21,13 @@ module.exports = {
 
     production: {
         client: 'mysql2',
-        connection: process.env.DATABASE_URL,
+        connection: {
+            host: 'mysql.railway.internal',
+            user: 'root',
+            password: 'BQYUYgyrghmpbbEUhJXAWkgZrqXZERzg',
+            database: 'railway',
+            port: 3306
+        },
         migrations: {
             directory: './migrations',
             tableName: 'knex_migrations'
