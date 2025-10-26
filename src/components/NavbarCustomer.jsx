@@ -8,9 +8,15 @@ function NavbarCustomer({ cartItems, onLogout }) {
         <Link className="navbar-brand" to="/customer/dashboard">
           <i className="fas fa-shopping-bag me-2"></i>Customer Panel
         </Link>
-        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#customerNavbar">
+        <button
+          className="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#customerNavbar"
+        >
           <span className="navbar-toggler-icon"></span>
         </button>
+
         <div className="collapse navbar-collapse" id="customerNavbar">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
@@ -23,27 +29,48 @@ function NavbarCustomer({ cartItems, onLogout }) {
                 <i className="fas fa-receipt me-2"></i>My Orders
               </Link>
             </li>
+
+            {/* Cart Dropdown */}
             <li className="nav-item dropdown">
-              <span
-                className="nav-link dropdown-toggle"
-                role="button"
+              <button
+                className="nav-link dropdown-toggle btn btn-link"
+                type="button"
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
               >
-                <i className="fas fa-shopping-cart me-2"></i>Cart ({cartItems.length})
-              </span>
-              <ul className="dropdown-menu dropdown-menu-end p-2" style={{ minWidth: '250px' }}>
+                <i className="fas fa-shopping-cart me-2"></i>
+                Cart ({cartItems.length})
+              </button>
+              <ul
+                className="dropdown-menu dropdown-menu-end p-2"
+                style={{ minWidth: '250px' }}
+              >
                 {cartItems.length === 0 ? (
-                  <li className="dropdown-item text-muted">Cart is empty</li>
+                  <li className="dropdown-item text-muted">
+                    Cart is empty
+                    <div className="mt-2">
+                      <Link
+                        to="/customer/dashboard"
+                        className="btn btn-sm btn-outline-primary w-100"
+                      >
+                        Browse Products
+                      </Link>
+                    </div>
+                  </li>
                 ) : (
                   cartItems.map((item) => (
-                    <li key={item.id} className="dropdown-item d-flex justify-content-between align-items-center">
+                    <li
+                      key={item.id}
+                      className="dropdown-item d-flex justify-content-between align-items-center"
+                    >
                       <span>{item.productName}</span>
                       <span className="badge bg-secondary">{item.quantity}</span>
                     </li>
                   ))
                 )}
-                <li><hr className="dropdown-divider" /></li>
+                <li>
+                  <hr className="dropdown-divider" />
+                </li>
                 <li>
                   <Link className="dropdown-item text-center" to="/customer/cart">
                     View Full Cart
@@ -52,6 +79,8 @@ function NavbarCustomer({ cartItems, onLogout }) {
               </ul>
             </li>
           </ul>
+
+          {/* Logout Button */}
           <button className="btn btn-outline-dark" onClick={onLogout}>
             <i className="fas fa-sign-out-alt me-2"></i>Logout
           </button>
