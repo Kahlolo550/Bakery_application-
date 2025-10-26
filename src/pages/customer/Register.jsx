@@ -37,15 +37,23 @@ function CustomerRegister({ showNotification }) {
         })
       });
 
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        showNotification('Unexpected server response.', true);
+        return;
+      }
+
       if (res.ok) {
         showNotification('Customer registered successfully!');
         navigate('/customer/login');
       } else {
-        const data = await res.json();
         showNotification(data.error || 'Registration failed.', true);
       }
-    } catch {
-      showNotification('Network error. Please try again.', true);
+    } catch (err) {
+      console.error('Registration fetch error:', err);
+      showNotification(`Network error: ${err.message}`, true);
     } finally {
       setLoading(false);
     }
