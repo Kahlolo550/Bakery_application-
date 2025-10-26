@@ -1,7 +1,7 @@
 require('dotenv').config();
 const mysql = require('mysql2');
 
-const pool = mysql.createPool({
+const dbConfig = {
     host: process.env.MYSQLHOST,
     port: process.env.MYSQLPORT,
     user: process.env.MYSQLUSER,
@@ -10,12 +10,18 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-});
+};
 
-// Optional: test connection
+console.log('🔍 MySQL Config:', dbConfig);
+
+const pool = mysql.createPool(dbConfig);
+
+// Test connection with detailed error logging
 pool.getConnection((err, connection) => {
     if (err) {
-        console.error('❌ MySQL connection failed:', err.message);
+        console.error('❌ MySQL connection failed!');
+        console.error('🔎 Error message:', err.message);
+        console.error('📄 Full error:', err);
     } else {
         console.log('✅ MySQL connected successfully');
         connection.release();
