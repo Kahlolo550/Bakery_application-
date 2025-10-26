@@ -13,32 +13,37 @@ function CustomerLogin({ onLogin, showNotification }) {
       showNotification('Email and password are required.', true);
       return;
     }
+setLoading(true);
+try {
+  const res = await fetch(`${API_BASE}/api/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email.trim(), password: password.trim() }),
+  });
 
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), password: password.trim() }),
-      });
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    showNotification('Unexpected server response.', true);
+    return;
+  }
 
-      const data = await res.json();
-      if (res.ok && data.token && data.user.role === 'customer') {
-        localStorage.setItem('token', data.token);
-        onLogin(data.token, 'customer');
-        showNotification('Login successful!');
-        navigate('/customer/dashboard');
-      } else {
-        showNotification(data.error || 'Login failed.', true);
-      }
-    } catch (err) {
-      console.error('Login error:', err);
-      showNotification(`Network error: ${err.message}`, true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  if (res.ok && data.token && data.user.role === 'customer') {
+    localStorage.setItem('token', data.token);
+    onLogin(data.token, 'customer');
+    showNotification('Login successful!');
+    navigate('/customer/dashboard');
+  } else {
+    showNotification(data.error || 'Login failed.', true);
+  }
+} catch (err) {
+  console.error('Login fetch error:', err);
+  showNotification(`Network error: ${err.message}`, true);
+} finally {
+  setLoading(false);
+}
+  }
   return (
     <div className="container py-4" style={{ maxWidth: '500px' }}>
       <div className="card shadow-sm border-0">

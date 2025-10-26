@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
-const SECRET = process.env.JWT_SECRET || 'sweetcrust_secret';
+const SECRET = process.env.JWT_SECRET || process.env.RAILWAY_SECRET_JWT_SECRET;
 
-function verifyToken(req, res, next) {
+module.exports = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ error: 'Missing token.' });
 
@@ -11,8 +11,6 @@ function verifyToken(req, res, next) {
         req.user = decoded;
         next();
     } catch {
-        res.status(403).json({ error: 'Invalid or expired token.' });
+        res.status(401).json({ error: 'Invalid or expired token.' });
     }
-}
-
-module.exports = verifyToken;
+};
