@@ -30,17 +30,26 @@ function groupOrders(rows, includeCustomer = false) {
 }
 
 exports.getRetailerOrders = async(req, res) => {
-    const retailerId = req.user.id;
+    const retailerId = req.user.id; // must match products.retailerId
+
     try {
         const [rows] = await db.query(`
-      SELECT o.id AS orderId, o.userId, o.status, o.orderDate, o.address, o.phone,
-             u.fullName AS customerName,
-             p.id AS productId, p.name AS productName, p.photo AS productPhoto,
-             o.quantity AS quantity
+      SELECT 
+        o.id AS orderId,
+        o.userId,
+        o.status,
+        o.orderDate,
+        o.address,
+        o.phone,
+        u.fullName AS customerName,
+        p.id AS productId,
+        p.name AS productName,
+        p.photo AS productPhoto,
+        o.quantity AS quantity
       FROM orders o
       JOIN users u ON u.id = o.userId
       JOIN products p ON p.id = o.productId
-      WHERE p.retailerId = ?
+      WHERE p.retailerId = ?        -- ✅ filter by retailerId
       ORDER BY o.orderDate DESC
     `, [retailerId]);
 
@@ -53,11 +62,19 @@ exports.getRetailerOrders = async(req, res) => {
 
 exports.getCustomerOrders = async(req, res) => {
     const userId = req.user.id;
+
     try {
         const [rows] = await db.query(`
-      SELECT o.id AS orderId, o.status, o.orderDate, o.address, o.phone,
-             p.id AS productId, p.name AS productName, p.photo AS productPhoto,
-             o.quantity AS quantity
+      SELECT 
+        o.id AS orderId,
+        o.status,
+        o.orderDate,
+        o.address,
+        o.phone,
+        p.id AS productId,
+        p.name AS productName,
+        p.photo AS productPhoto,
+        o.quantity AS quantity
       FROM orders o
       JOIN products p ON p.id = o.productId
       WHERE o.userId = ?
