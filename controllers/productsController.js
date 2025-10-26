@@ -1,5 +1,24 @@
 const db = require('../db');
 
+exports.createProduct = async(req, res) => {
+    const retailerId = req.user.id;
+    const { name, price, category, description, photo } = req.body;
+
+    if (!name || !price || !category || !description || !photo) {
+        return res.status(400).json({ error: 'All fields are required.' });
+    }
+
+    try {
+        const [result] = await db.query(
+            'INSERT INTO products (name, price, category, description, photo, retailerId) VALUES (?, ?, ?, ?, ?, ?)', [name, price, category, description, photo, retailerId]
+        );
+        res.status(201).json({ message: 'Product created successfully', id: result.insertId });
+    } catch (err) {
+        console.error('Create product error:', err);
+        res.status(500).json({ error: 'Failed to create product' });
+    }
+};
+
 exports.getRetailerProducts = async(req, res) => {
     const retailerId = req.user.id;
     try {
@@ -17,9 +36,9 @@ exports.getAllProducts = async(req, res) => {
     try {
         const [products] = await db.query(
             `SELECT p.*, r.storeName AS retailerName
-             FROM products p
-             JOIN retailers r ON p.retailerId = r.id
-             ORDER BY p.created_at DESC`
+       FROM products p
+       JOIN retailers r ON p.retailerId = r.id
+       ORDER BY p.created_at DESC`
         );
 
         const formatted = products.map((p) => ({

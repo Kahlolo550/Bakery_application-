@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import API_BASE from '../../config/api';
 
 function AddProduct({ token, showNotification }) {
   const [name, setName] = useState('');
@@ -13,7 +14,7 @@ function AddProduct({ token, showNotification }) {
     const formData = new FormData();
     formData.append('photo', photoFile);
 
-    const res = await fetch('http://localhost:5000/api/upload', {
+    const res = await fetch(`${API_BASE}/api/upload`, {
       method: 'POST',
       body: formData,
     });
@@ -32,7 +33,7 @@ function AddProduct({ token, showNotification }) {
     try {
       const uploadedUrl = await uploadPhoto();
 
-      const res = await fetch('http://localhost:5000/api/products', {
+      const res = await fetch(`${API_BASE}/api/products`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
