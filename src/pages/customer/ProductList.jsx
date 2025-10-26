@@ -82,41 +82,43 @@ function CustomerProductList({ token, refreshCart, showNotification }) {
               <p>No products available at the moment.</p>
             </div>
           ) : (
-            products.map((p) => {
-              // ✅ Ensure correct image URL for both local and deployed
-              const imageUrl = p.photo?.startsWith('http')
-                ? p.photo
-                : `${API_BASE}${p.photo}`;
-
-              return (
-                <div key={p.id} className="col-md-6 col-lg-4 mb-4">
-                  <div className="card h-100 shadow-sm border-0">
-                    <img
-                      src={imageUrl}
-                      alt={p.name}
-                      className="card-img-top"
-                      style={{ height: '200px', objectFit: 'cover' }}
-                    />
-                    <div className="card-body d-flex flex-column">
-                      <h5 className="card-title">{p.name}</h5>
-                      <p className="card-text fw-bold text-success">
-                        {formatCurrency(p.price)}
-                      </p>
-                      <p className="card-text text-muted small">
-                        <i className="fas fa-user me-1"></i>Sold by: {p.retailerName}
-                      </p>
-                      <p className="card-text small">{p.description}</p>
-                      <button
-                        className="btn btn-outline-success mt-auto"
-                        onClick={() => addToCart(p)}
-                      >
-                        <i className="fas fa-cart-plus me-2"></i>Add to Cart
-                      </button>
-                    </div>
+            products.map((product) => (
+              <div key={product.id} className="col-md-6 col-lg-4 mb-4">
+                <div className="card h-100 shadow-sm border-0">
+                  <img
+                    src={
+                      product.photo?.startsWith('http')
+                        ? product.photo
+                        : `${API_BASE}${product.photo}`
+                    }
+                    alt={product.name}
+                    className="card-img-top"
+                    style={{
+                      height: '200px',
+                      objectFit: 'cover',
+                      borderTopLeftRadius: '0.5rem',
+                      borderTopRightRadius: '0.5rem',
+                    }}
+                  />
+                  <div className="card-body d-flex flex-column">
+                    <h5 className="card-title">{product.name}</h5>
+                    <p className="card-text fw-bold text-success">
+                      {formatCurrency(product.price)}
+                    </p>
+                    <p className="card-text text-muted small">
+                      <i className="fas fa-user me-1"></i>Sold by: {product.retailerName}
+                    </p>
+                    <p className="card-text small">{product.description}</p>
+                    <button
+                      className="btn btn-outline-success mt-auto"
+                      onClick={() => addToCart(product)}
+                    >
+                      <i className="fas fa-cart-plus me-2"></i>Add to Cart
+                    </button>
                   </div>
                 </div>
-              );
-            })
+              </div>
+            ))
           )}
         </div>
       )}
