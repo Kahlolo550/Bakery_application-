@@ -13,17 +13,25 @@ const validate = (schema) => (req, res, next) => {
     next();
 };
 
-// 🔐 Registration schema
-const registerSchema = Joi.object({
+// 🔐 Customer registration schema
+const customerSchema = Joi.object({
     username: Joi.string().min(3).required(),
     email: Joi.string().email().required(),
     password: Joi.string().min(6).required(),
     fullName: Joi.string().min(3).required()
 });
 
+// 🔐 Retailer registration schema
+const retailerSchema = Joi.object({
+    username: Joi.string().min(3).required(),
+    contactEmail: Joi.string().email().required(),
+    password: Joi.string().min(6).required(),
+    storeName: Joi.string().min(3).required()
+});
+
 // ✅ Register Customer
 exports.registerCustomer = [
-    validate(registerSchema),
+    validate(customerSchema),
     async(req, res, next) => {
         const { username, email, password, fullName } = req.body;
         try {
@@ -46,17 +54,17 @@ exports.registerCustomer = [
 
 // ✅ Register Retailer
 exports.registerRetailer = [
-    validate(registerSchema),
+    validate(retailerSchema),
     async(req, res, next) => {
-        const { username, email, password, fullName } = req.body;
+        const { username, contactEmail, password, storeName } = req.body;
         try {
-            const [existing] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
+            const [existing] = await db.query('SELECT id FROM retailers WHERE contactEmail = ?', [contactEmail]);
             if (existing.length > 0)
                 return res.status(409).json({ error: 'Email already registered.' });
 
             const hashed = await bcrypt.hash(password, 10);
             await db.query(
-                'INSERT INTO users (username, email, password, fullName) VALUES (?, ?, ?, ?)', [username, email, hashed, fullName]
+                'INSERT INTO retailers (username, contactEmail, password, storeName) VALUES (?, ?, ?, ?)', [username, contactEmail, hashed, storeName]
             );
 
             res.status(201).json({ message: 'Retailer registered successfully.' });
