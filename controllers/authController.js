@@ -123,3 +123,12 @@ exports.loginRetailer = async(req, res) => {
         res.status(500).json({ error: 'Server error during login.' });
     }
 };
+
+// ✅ GET routes for browser visibility
+exports.getCustomerRegister = (req, res) => {
+    res.send('Customer registration endpoint is live. Use POST to register.');
+};
+
+exports.getRetailerRegister = (req, res) => {
+    res.send('Retailer registration endpoint is live. Use POST to register.');
+};
