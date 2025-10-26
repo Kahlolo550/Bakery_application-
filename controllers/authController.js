@@ -4,9 +4,14 @@ const jwt = require('jsonwebtoken');
 
 const SECRET = process.env.JWT_SECRET || 'sweetcrust_secret';
 
+// 🔐 Middleware helper
+function generateToken(id) {
+    return jwt.sign({ id }, SECRET, { expiresIn: '1h' });
+}
+
+// ✅ Customer Registration
 exports.registerCustomer = async(req, res) => {
     const { username, password, email, fullName } = req.body;
-
     if (!username || !password || !email || !fullName) {
         return res.status(400).json({ error: 'All fields are required.' });
     }
@@ -16,7 +21,6 @@ exports.registerCustomer = async(req, res) => {
         await db.query(
             'INSERT INTO users (username, password, email, fullName) VALUES (?, ?, ?, ?)', [username, hashed, email, fullName]
         );
-        console.log('Customer registered:', email);
         res.sendStatus(201);
     } catch (err) {
         console.error('Customer registration error:', err);
@@ -28,9 +32,9 @@ exports.registerCustomer = async(req, res) => {
     }
 };
 
+// ✅ Customer Login
 exports.loginCustomer = async(req, res) => {
     const { email, password } = req.body;
-
     if (!email || !password) {
         return res.status(400).json({ error: 'Email and password are required.' });
     }
@@ -38,17 +42,12 @@ exports.loginCustomer = async(req, res) => {
     try {
         const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
         const user = users[0];
+        if (!user) return res.status(404).json({ error: 'Email not found.' });
 
-        if (!user) {
-            return res.status(404).json({ error: 'Email not found. Please register first.' });
-        }
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) return res.status(401).json({ error: 'Incorrect password.' });
 
-        const passwordMatch = await bcrypt.compare(password, user.password);
-        if (!passwordMatch) {
-            return res.status(401).json({ error: 'Incorrect password. Please try again.' });
-        }
-
-        const token = jwt.sign({ id: user.id }, SECRET, { expiresIn: '1h' });
+        const token = generateToken(user.id);
         res.json({
             token,
             user: {
@@ -64,9 +63,9 @@ exports.loginCustomer = async(req, res) => {
     }
 };
 
+// ✅ Retailer Registration
 exports.registerRetailer = async(req, res) => {
     const { username, password, contactEmail, storeName } = req.body;
-
     if (!username || !password || !contactEmail || !storeName) {
         return res.status(400).json({ error: 'All fields are required.' });
     }
@@ -76,7 +75,6 @@ exports.registerRetailer = async(req, res) => {
         await db.query(
             'INSERT INTO retailers (username, password, contactEmail, storeName) VALUES (?, ?, ?, ?)', [username, hashed, contactEmail, storeName]
         );
-        console.log('Retailer registered:', contactEmail);
         res.sendStatus(201);
     } catch (err) {
         console.error('Retailer registration error:', err);
@@ -88,9 +86,9 @@ exports.registerRetailer = async(req, res) => {
     }
 };
 
+// ✅ Retailer Login
 exports.loginRetailer = async(req, res) => {
     const { contactEmail, password } = req.body;
-
     if (!contactEmail || !password) {
         return res.status(400).json({ error: 'Email and password are required.' });
     }
@@ -98,17 +96,12 @@ exports.loginRetailer = async(req, res) => {
     try {
         const [retailers] = await db.query('SELECT * FROM retailers WHERE contactEmail = ?', [contactEmail]);
         const retailer = retailers[0];
+        if (!retailer) return res.status(404).json({ error: 'Email not found.' });
 
-        if (!retailer) {
-            return res.status(404).json({ error: 'Email not found. Please register first.' });
-        }
+        const match = await bcrypt.compare(password, retailer.password);
+        if (!match) return res.status(401).json({ error: 'Incorrect password.' });
 
-        const passwordMatch = await bcrypt.compare(password, retailer.password);
-        if (!passwordMatch) {
-            return res.status(401).json({ error: 'Incorrect password. Please try again.' });
-        }
-
-        const token = jwt.sign({ id: retailer.id }, SECRET, { expiresIn: '1h' });
+        const token = generateToken(retailer.id);
         res.json({
             token,
             retailer: {
@@ -131,4 +124,31 @@ exports.getCustomerRegister = (req, res) => {
 
 exports.getRetailerRegister = (req, res) => {
     res.send('Retailer registration endpoint is live. Use POST to register.');
+};
+
+// ✅ /me routes
+exports.getCustomerProfile = async(req, res) => {
+    try {
+        const [users] = await db.query(
+            'SELECT id, username, email, fullName FROM users WHERE id = ?', [req.user.id]
+        );
+        if (!users.length) return res.status(404).json({ error: 'Customer not found.' });
+        res.json(users[0]);
+    } catch (err) {
+        console.error('Customer profile error:', err);
+        res.status(500).json({ error: 'Server error fetching profile.' });
+    }
+};
+
+exports.getRetailerProfile = async(req, res) => {
+    try {
+        const [retailers] = await db.query(
+            'SELECT id, username, contactEmail, storeName FROM retailers WHERE id = ?', [req.user.id]
+        );
+        if (!retailers.length) return res.status(404).json({ error: 'Retailer not found.' });
+        res.json(retailers[0]);
+    } catch (err) {
+        console.error('Retailer profile error:', err);
+        res.status(500).json({ error: 'Server error fetching profile.' });
+    }
 };
