@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import API_BASE from '../../config/api'; // ✅ make sure this points to your deployed backend
 
 function OrdersPage({ token, showNotification }) {
   const [orders, setOrders] = useState([]);
 
   const fetchOrders = useCallback(async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/orders', {
+      const res = await fetch(`${API_BASE}/api/orders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -20,31 +21,23 @@ function OrdersPage({ token, showNotification }) {
     fetchOrders();
   }, [fetchOrders]);
 
-  const updateProductStatus = async (orderId, productId, newStatus) => {
+  const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+      const res = await fetch(`${API_BASE}/api/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ productId, status: newStatus }),
+        body: JSON.stringify({ status: newStatus }),
       });
 
       if (!res.ok) throw new Error('Failed to update status');
 
       setOrders(prev =>
-        prev.map(order => {
-          if (order.id === orderId) {
-            const updatedProducts = order.products.map(p =>
-              p.id === productId ? { ...p, status: newStatus } : p
-            );
-            const orderStatus =
-              updatedProducts.every(p => p.status === 'completed') ? 'completed' : 'pending';
-            return { ...order, products: updatedProducts, status: orderStatus };
-          }
-          return order;
-        })
+        prev.map(order =>
+          order.id === orderId ? { ...order, status: newStatus } : order
+        )
       );
 
       showNotification('Status updated successfully');
@@ -87,7 +80,16 @@ function OrdersPage({ token, showNotification }) {
                         <strong>Status:</strong>{' '}
                         <span className={`badge ${order.status === 'completed' ? 'bg-success' : 'bg-warning text-dark'}`}>
                           {order.status}
-                        </span><br />
+                        </span>
+                        {order.status !== 'completed' && (
+                          <button
+                            className="btn btn-sm btn-outline-primary ms-2"
+                            onClick={() => updateOrderStatus(order.id, 'completed')}
+                          >
+                            <i className="fas fa-check me-1"></i>Mark Complete
+                          </button>
+                        )}
+                        <br />
                         <strong>Date:</strong> {new Date(order.orderDate).toLocaleString()}<br />
                         <strong>Address:</strong> {order.address}<br />
                         <strong>Phone:</strong> {order.phone}
@@ -96,23 +98,13 @@ function OrdersPage({ token, showNotification }) {
                         {order.products.map(product => (
                           <div key={product.id} className="col-6 text-center mb-3">
                             <img
-                              src={product.photo.startsWith('http') ? product.photo : `http://localhost:5000${product.photo}`}
+                              src={product.photo.startsWith('http') ? product.photo : `${API_BASE}${product.photo}`}
                               alt={product.name}
                               className="img-fluid rounded"
                               style={{ height: '60px', objectFit: 'cover' }}
                             />
                             <p className="mt-2 mb-1 fw-semibold small">{product.name}</p>
                             <p className="mb-1 small text-muted">Qty: {product.quantity}</p>
-                            {product.status === 'completed' ? (
-                              <span className="badge bg-success small">Completed</span>
-                            ) : (
-                              <button
-                                className="btn btn-sm btn-outline-primary"
-                                onClick={() => updateProductStatus(order.id, product.id, 'completed')}
-                              >
-                                <i className="fas fa-check me-1"></i>Complete
-                              </button>
-                            )}
                           </div>
                         ))}
                       </div>
