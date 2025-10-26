@@ -33,7 +33,7 @@ exports.registerCustomer = [
 
             const hashed = await bcrypt.hash(password, 10);
             await db.query(
-                'INSERT INTO users (username, email, password, fullName, role) VALUES (?, ?, ?, ?, ?)', [username, email, hashed, fullName, 'customer']
+                'INSERT INTO users (username, email, password, fullName) VALUES (?, ?, ?, ?)', [username, email, hashed, fullName]
             );
 
             res.status(201).json({ message: 'Customer registered successfully.' });
@@ -56,7 +56,7 @@ exports.registerRetailer = [
 
             const hashed = await bcrypt.hash(password, 10);
             await db.query(
-                'INSERT INTO users (username, email, password, fullName, role) VALUES (?, ?, ?, ?, ?)', [username, email, hashed, fullName, 'retailer']
+                'INSERT INTO users (username, email, password, fullName) VALUES (?, ?, ?, ?)', [username, email, hashed, fullName]
             );
 
             res.status(201).json({ message: 'Retailer registered successfully.' });
@@ -88,15 +88,14 @@ exports.loginUser = [
             if (!match)
                 return res.status(401).json({ error: 'Invalid email or password.' });
 
-            const token = jwt.sign({ id: user.id, role: user.role }, SECRET, { expiresIn: '1h' });
+            const token = jwt.sign({ id: user.id }, SECRET, { expiresIn: '1h' });
             res.json({
                 token,
                 user: {
                     id: user.id,
                     username: user.username,
                     email: user.email,
-                    fullName: user.fullName,
-                    role: user.role
+                    fullName: user.fullName
                 }
             });
         } catch (err) {
@@ -110,7 +109,7 @@ exports.loginUser = [
 exports.getProfile = async(req, res, next) => {
     try {
         const [users] = await db.query(
-            'SELECT id, username, email, fullName, role FROM users WHERE id = ?', [req.user.id]
+            'SELECT id, username, email, fullName FROM users WHERE id = ?', [req.user.id]
         );
         const user = users[0];
         if (!user) return res.status(404).json({ error: 'User not found.' });
