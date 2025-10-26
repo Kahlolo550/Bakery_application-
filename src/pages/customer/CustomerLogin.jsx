@@ -30,7 +30,7 @@ function CustomerLogin({ onLogin, showNotification }) {
         return;
       }
 
-      if (res.ok && data.token && data.user.role === 'customer') {
+      if (res.ok && data.token) {
         localStorage.setItem('token', data.token);
         onLogin(data.token, 'customer');
         showNotification('Login successful!');
@@ -53,6 +53,7 @@ function CustomerLogin({ onLogin, showNotification }) {
           <h3 className="text-center text-primary mb-4">
             <i className="fas fa-sign-in-alt me-2"></i>Customer Login
           </h3>
+
           <input
             type="email"
             className="form-control mb-3"
@@ -61,6 +62,7 @@ function CustomerLogin({ onLogin, showNotification }) {
             onChange={(e) => setEmail(e.target.value)}
             disabled={loading}
           />
+
           <input
             type="password"
             className="form-control mb-4"
@@ -69,11 +71,21 @@ function CustomerLogin({ onLogin, showNotification }) {
             onChange={(e) => setPassword(e.target.value)}
             disabled={loading}
           />
-          <button className="btn btn-primary w-100" onClick={login} disabled={loading}>
-            <i className="fas fa-lock me-2"></i>{loading ? 'Logging in...' : 'Login'}
+
+          <button
+            className="btn btn-primary w-100"
+            onClick={login}
+            disabled={loading}
+          >
+            <i className="fas fa-lock me-2"></i>
+            {loading ? 'Logging in...' : 'Login'}
           </button>
+
           <div className="text-center mt-3">
-            <small>Don’t have an account? <Link to="/customer/register">Register here</Link></small>
+            <small>
+              Don’t have an account?{' '}
+              <Link to="/customer/register">Register here</Link>
+            </small>
           </div>
         </div>
       </div>
