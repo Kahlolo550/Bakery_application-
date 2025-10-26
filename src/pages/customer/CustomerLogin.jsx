@@ -16,7 +16,7 @@ function CustomerLogin({ onLogin, showNotification }) {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/auth/login/customer`, {
+      const res = await fetch(`${API_BASE}/api/login/customer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), password: password.trim() }),
@@ -24,6 +24,7 @@ function CustomerLogin({ onLogin, showNotification }) {
 
       const data = await res.json();
       if (res.ok && data.token) {
+        localStorage.setItem('token', data.token); // ✅ Store token for protected routes
         onLogin(data.token, 'customer');
         showNotification('Login successful!');
         navigate('/customer/dashboard');
@@ -44,10 +45,22 @@ function CustomerLogin({ onLogin, showNotification }) {
           <h3 className="text-center text-primary mb-4">
             <i className="fas fa-sign-in-alt me-2"></i>Customer Login
           </h3>
-          <input type="email" className="form-control mb-3" placeholder="Email"
-            value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} />
-          <input type="password" className="form-control mb-4" placeholder="Password"
-            value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
+          <input
+            type="email"
+            className="form-control mb-3"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
+          />
+          <input
+            type="password"
+            className="form-control mb-4"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
+          />
           <button className="btn btn-primary w-100" onClick={login} disabled={loading}>
             <i className="fas fa-lock me-2"></i>{loading ? 'Logging in...' : 'Login'}
           </button>
