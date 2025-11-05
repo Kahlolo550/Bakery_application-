@@ -1,6 +1,5 @@
 const db = require('../db');
 
-// Create a new product
 exports.createProduct = async(req, res) => {
     const retailerId = req.user.id;
     const { name, price, category, description, photo } = req.body;
@@ -10,7 +9,6 @@ exports.createProduct = async(req, res) => {
     }
 
     try {
-        // ✅ Ensure photo path is stored as relative (e.g. /uploads/filename.jpg)
         const photoPath = photo.startsWith('/uploads') ? photo : `/uploads/${photo}`;
 
         const [result] = await db.query(
@@ -24,7 +22,7 @@ exports.createProduct = async(req, res) => {
     }
 };
 
-// Get products for the logged-in retailer
+
 exports.getRetailerProducts = async(req, res) => {
     const retailerId = req.user.id;
     try {
@@ -38,7 +36,7 @@ exports.getRetailerProducts = async(req, res) => {
     }
 };
 
-// Get all products for customers
+
 exports.getAllProducts = async(req, res) => {
     try {
         const [products] = await db.query(
@@ -48,7 +46,7 @@ exports.getAllProducts = async(req, res) => {
        ORDER BY p.created_at DESC`
         );
 
-        // ✅ Return relative paths only, frontend will prepend API_BASE
+
         const formatted = products.map((p) => ({
             ...p,
             photo: p.photo,
@@ -61,7 +59,6 @@ exports.getAllProducts = async(req, res) => {
     }
 };
 
-// Delete a product (only by its retailer)
 exports.deleteProduct = async(req, res) => {
     const productId = req.params.id;
     const retailerId = req.user.id;
